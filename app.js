@@ -3,7 +3,7 @@
     apiKey: "AIzaSyD67r7V8lcucf9f-5Cn3nbYxhj9SiRL5TU",
     authDomain: "studentadmissions-1402c.firebaseapp.com",
     projectId: "studentadmissions-1402c",
-    storageBucket: "studentadmissions-1402c.firebasestorage.app",
+    storageBucket: "studentadmissions-1402c.appspot.com",
     messagingSenderId: "820335252704",
     appId: "1:820335252704:web:1e3a6380810c631a1f2c85"
   };
