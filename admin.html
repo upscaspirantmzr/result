@@ -1,13 +1,84 @@
+const firebaseConfig = {
+  apiKey: "AIzaSyD67r7V8lcucf9f-5Cn3nbYxhj9SiRL5TU",
+  authDomain: "studentadmissions-1402c.firebaseapp.com",
+  projectId: "studentadmissions-1402c",
+  storageBucket: "studentadmissions-1402c.firebasestorage.app",
+  messagingSenderId: "820335252704",
+  appId: "1:820335252704:web:1e3a6380810c631a1f2c85"
+};
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Panel</title>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
-  <script src="app.js" defer></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .container {
+      margin-top: 50px;
+    }
+    .card {
+      margin-bottom: 20px;
+    }
+    .status-btn {
+      width: 100px;
+    }
+  </style>
 </head>
 <body>
-  <h2>Admin Dashboard</h2>
-  <div id="adminList"></div>
+  <div class="container">
+    <h2 class="text-center mb-4">Admin Panel: Review Applications</h2>
+    <div id="appList" class="row"></div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyD67r7V8lcucf9f-5Cn3nbYxhj9SiRL5TU",
+      authDomain: "studentadmissions-1402c.firebaseapp.com",
+      projectId: "studentadmissions-1402c"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const appList = document.getElementById("appList");
+      const snapshot = await db.collection("applications").get();
+
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const statusClass = data.status === "Approved" ? "bg-success" : data.status === "Rejected" ? "bg-danger" : "bg-warning";
+        const statusText = data.status === "Approved" ? "Approved" : data.status === "Rejected" ? "Rejected" : "Pending";
+
+        const card = document.createElement("div");
+        card.classList.add("col-md-4");
+        card.innerHTML = `
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">${data.name}</h5>
+              <p class="card-text"><strong>Email:</strong> ${data.email}</p>
+              <p class="card-text"><strong>Course:</strong> ${data.course}</p>
+              <p class="card-text"><strong>Application ID:</strong> ${doc.id}</p>
+              <p class="card-text"><strong>Status:</strong> <span class="badge ${statusClass}">${statusText}</span></p>
+              <button class="btn btn-outline-success status-btn" onclick="updateStatus('${doc.id}', 'Approved')">Approve</button>
+              <button class="btn btn-outline-danger status-btn" onclick="updateStatus('${doc.id}', 'Rejected')">Reject</button>
+            </div>
+          </div>
+        `;
+        appList.appendChild(card);
+      });
+    });
+
+    async function updateStatus(id, status) {
+      await db.collection("applications").doc(id).update({ status });
+      alert(`Application ${id} has been ${status}`);
+      location.reload();
+    }
+  </script>
 </body>
 </html>
