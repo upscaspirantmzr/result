@@ -1,9 +1,12 @@
 // Firebase config (replace with your own config from Firebase Console)
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID"
-};
+ const firebaseConfig = {
+    apiKey: "AIzaSyD67r7V8lcucf9f-5Cn3nbYxhj9SiRL5TU",
+    authDomain: "studentadmissions-1402c.firebaseapp.com",
+    projectId: "studentadmissions-1402c",
+    storageBucket: "studentadmissions-1402c.firebasestorage.app",
+    messagingSenderId: "820335252704",
+    appId: "1:820335252704:web:1e3a6380810c631a1f2c85"
+  };
 
 const app = firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
