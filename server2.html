@@ -1,24 +1,17 @@
 <!DOCTYPE html>
-<html lang="en" class=""> <!-- Default to light mode, class is toggled by JS -->
-<head>
+<html lang="en" class=""> <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Advanced Exam Result Portal</title>
     
-    <!-- Tailwind CSS for modern styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- jsPDF for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- jsPDF AutoTable Plugin (REQUIRED for autoTable functionality) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-    <!-- jsPDF SVG Plugin (REQUIRED for addSvgAsImage functionality) -->
     <script src="https://unpkg.com/jspdf-svg@latest/dist/jspdf.plugin.svg.min.js"></script>
 
-    <!-- QR Code Generator Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 
-    <!-- Google Fonts for a clean look -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -53,7 +46,6 @@
 </head>
 <body class="transition-all">
 
-    <!-- Dark Mode Toggle -->
     <button id="theme-toggle" type="button" class="fixed top-4 right-4 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 z-50">
         <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8 0 1010.586 10.586z"></path></svg>
         <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
@@ -61,7 +53,6 @@
 
     <div class="w-full max-w-2xl mx-auto min-h-screen flex flex-col justify-center p-4">
         <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
-            <!-- Header Section -->
             <div class="p-6 bg-blue-600 dark:bg-blue-800 text-white text-center">
                 <div class="flex justify-center items-center gap-3">
                     <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.627 48.627 0 0 1 12 20.904a48.627 48.627 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.57 50.57 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.902 59.902 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" /></svg>
@@ -70,7 +61,6 @@
                 <p class="text-blue-200 dark:text-blue-300 mt-1">Check your full internal assessment marksheet</p>
             </div>
 
-            <!-- Form Section -->
             <div class="p-6 md:p-8 space-y-4">
                 <div>
                     <label for="roll" class="text-sm font-medium text-gray-700 dark:text-gray-300">Enter Your Roll Number</label>
@@ -81,7 +71,6 @@
                 </button>
             </div>
 
-            <!-- Result Display Section -->
             <div id="resultContainer" class="p-6 md:p-8 border-t border-gray-200 dark:border-gray-700"></div>
         </div>
         <footer class="text-center mt-6 text-sm text-gray-500 dark:text-gray-400">
@@ -94,6 +83,8 @@
         let currentStudentResults = [];
         let allStudentData = [];
         const sheetURL = "https://opensheet.elk.sh/1Sfrx9iH5b1-CipMJIQZJ8z61P1PUlgDPrSypfwY6aew/Sheet1";
+        // Logo URL from the user's previous request (corrected slightly for better loading)
+        const universityLogoURL = "https://blogger.googleusercontent.com/img/a/AVvXsEjf7AAWXFzw2JkaXuocaOdYGF_hYy1ZPczz2tu09_IgqpqqFL2kTyPPIwW-CkPSnDM_1Ppt92_mGIfqkrjLtFtwp9IFziDhNFqplU0xF5-ohk2y_hX-E0vStt2D5ojidWRNJgFCp71q4I5eQ4ZDPCGMn1dpeiwus1SFTLJdvOV0Ravvmbks-oMQgT2B6TI=w200";
 
         // --- ON PAGE LOAD ---
         document.addEventListener('DOMContentLoaded', () => {
@@ -180,7 +171,7 @@
                     allMarksPresent = false;
                 }
                 const { grade, remark, color } = getGradeAndRemark(marks);
-                if(!isNaN(marks)) {
+                if(!isNaN(marks)) { // Only add to total if it's a valid number
                     totalMarks += marks;
                     maxMarks += 100;
                 }
@@ -262,20 +253,17 @@
             return { grade: 'F', remark: 'Fail', color: { bg: 'bg-red-100 dark:bg-red-900/50', text: 'text-red-800 dark:text-red-200' } };
         }
         
-        // --- Helper to convert number to digit words ---
+        // --- Helper to convert number to words ---
         function numberToWords(num) {
-            const a = ['','ONE ','TWO ','THREE ','FOUR ', 'FIVE ','SIX ','SEVEN ','EIGHT ','NINE ','TEN ','ELEVEN ','TWELVE ','THIRTEEN ','FOURTEEN ','FIFTEEN ','SIXTEEN ','SEVENTEEN ','EIGHTEEN ','NINETEEN '];
-            const b = ['', '', 'TWENTY','THIRTY','FORTY','FIFTY', 'SIXTY','SEVENTY','EIGHTY','NINETY'];
+            const units = ['', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE', 'TEN', 'ELEVEN', 'TWELVE', 'THIRTEEN', 'FOURTEEN', 'FIFTEEN', 'SIXTEEN', 'SEVENTEEN', 'EIGHTEEN', 'NINETEEN'];
+            const tens = ['', '', 'TWENTY', 'THIRTY', 'FORTY', 'FIFTY', 'SIXTY', 'SEVENTY', 'EIGHTY', 'NINETY'];
             
             if (num === 0) return 'ZERO';
-            if (num < 20) return a[num].trim();
-            if (num < 100) return (b[Math.floor(num / 10)] + (num % 10 !== 0 ? a[num % 10] : '')).trim();
-            // For simplicity, for numbers >= 100, we'll convert digit by digit.
-            // A full number-to-words for larger numbers is more complex and out of scope for this task.
-            return num.toString().split('').map(digit => {
-                const words = ['ZERO', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE'];
-                return words[parseInt(digit)];
-            }).join(' ');
+            if (num < 20) return units[num];
+            if (num < 100) return (tens[Math.floor(num / 10)] + ' ' + units[num % 10]).trim();
+            if (num < 1000) return (units[Math.floor(num / 100)] + ' HUNDRED ' + numberToWords(num % 100)).trim();
+            // Extend for larger numbers if needed (e.g., thousands, lakhs)
+            return String(num); // Fallback for very large numbers
         }
 
         function getDivision(percentage) {
@@ -324,43 +312,41 @@
             doc.rect(margin, margin, pageWidth - (2 * margin), pageHeight - (2 * margin));
             doc.setLineDash([], 0); // Reset to solid line
 
-            // --- University Logo Image ---
-            const universityLogoURL = "https://blogger.googleusercontent.com/img/a/AVvXsEjf7AAWXFzw2JkaXuocaOdYGF_hYy1ZPczz2tu09_IgqpqqFL2kTyPPIwW-CkPSnDM_1Ppt92_mGIfqkrjLtFtwp9IFziDhNFqplU0xF5-ohk2y_hX-E0vStt2D5ojidWRNJgFCp71q4I5eQ4ZDPCGMn1dpeiwus1SFTLJdvOV0Ravvmbks-oMQgT2B6TI=w200"; // Corrected URL based on observation
-            // Fetch the image and add it. Using a data URL fallback for addImage to work reliably.
+            // --- University Logo Image Loading ---
+            let imgData = null;
             try {
                 const response = await fetch(universityLogoURL);
                 const blob = await response.blob();
-                const reader = new FileReader();
-                reader.onload = function() {
-                    const imgData = reader.result;
-                    doc.addImage(imgData, 'PNG', (pageWidth / 2) - 25, margin + 5, 50, 50); // x, y, width, height
-                    // After image is loaded, add the rest of the content
-                    drawPdfContent();
-                };
-                reader.readAsDataURL(blob);
+                imgData = await new Promise(resolve => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.readAsDataURL(blob);
+                });
             } catch (error) {
                 console.error("Error loading logo image:", error);
-                // Fallback to drawing without logo if it fails
-                drawPdfContent();
             }
 
-            // Function to draw the rest of the PDF content after logo is handled
+            // Function to draw the rest of the PDF content
             function drawPdfContent() {
+                if (imgData) {
+                    doc.addImage(imgData, 'PNG', (pageWidth / 2) - 25, margin + 5, 50, 50); // x, y, width, height
+                }
+
                 // --- Header ---
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(16);
-                doc.text("GAUHATI UNIVERSITY", pageWidth / 2, margin + 65, { align: 'center' }); // Adjusted Y for logo
+                doc.text("GAUHATI UNIVERSITY", pageWidth / 2, margin + (imgData ? 65 : 15), { align: 'center' }); // Adjusted Y for logo
                 doc.setFontSize(14);
-                doc.text("FACULTY OF LAW", pageWidth / 2, margin + 73, { align: 'center' });
+                doc.text("FACULTY OF LAW", pageWidth / 2, margin + (imgData ? 73 : 23), { align: 'center' });
                 doc.setFontSize(12);
-                doc.text("AHSEC HS FINAL RESULT", pageWidth / 2, margin + 81, { align: 'center' });
+                doc.text("AHSEC HS FINAL RESULT", pageWidth / 2, margin + (imgData ? 81 : 31), { align: 'center' });
                 doc.setFontSize(14);
-                doc.text("PROVISIONAL MARKSHEET", pageWidth / 2, margin + 89, { align: 'center' });
+                doc.text("PROVISIONAL MARKSHEET", pageWidth / 2, margin + (imgData ? 89 : 39), { align: 'center' });
                 doc.setLineWidth(0.5);
-                doc.line(margin + 10, margin + 95, pageWidth - margin - 10, margin + 95);
+                doc.line(margin + 10, margin + (imgData ? 95 : 45), pageWidth - margin - 10, margin + (imgData ? 95 : 45));
 
                 // --- Personal Details ---
-                let startY = margin + 103;
+                let startY = margin + (imgData ? 103 : 53);
                 doc.setFontSize(11);
                 doc.setFont("helvetica", "bold");
                 doc.text("PERSONAL DETAILS:", margin + 5, startY);
@@ -435,7 +421,15 @@
                 doc.line(pageWidth - 60, pageHeight - 50, pageWidth - 20, pageHeight - 50);
                 doc.text("Controller of Examinations", pageWidth - 55, pageHeight - 45, { align: 'center' });
 
-                // Generate QR Code
+                // Circular Seal Placeholder
+                const sealX = pageWidth - 40;
+                const sealY = pageHeight - 75; // Adjust as needed
+                const sealRadius = 15;
+                doc.circle(sealX, sealY, sealRadius);
+                doc.setFontSize(8);
+                doc.text("SEAL", sealX, sealY, { align: 'center', baseline: 'middle' }); // Centered text in seal
+
+                // Generate QR Code below the seal/signature
                 const qrData = `Roll: ${studentInfo["Roll Number"]}, Name: ${studentInfo.Name}, Total Marks: ${allMarksPresentForPDF ? totalMarks : 'N/A'}, Result: ${division}`;
                 const qr = qrcode(0, 'L');
                 qr.addData(qrData);
@@ -447,14 +441,22 @@
                 doc.text("Scanned QR for Verification", pageWidth - 55, pageHeight - 5, { align: 'center' });
 
 
-                // --- Footer Disclaimer ---
+                // --- Footer Disclaimer & Page Number ---
                 doc.setFont("helvetica", "italic");
                 doc.setFontSize(8);
                 doc.text("This is a provisional marksheet generated online and requires official seal for legal validity.", margin, pageHeight - 10, { align: 'left' });
                 doc.text("Any discrepancy should be reported to the examination department within 7 working days.", pageWidth - margin, pageHeight - 10, { align: 'right' });
+                // Add page numbers and Roll No. to footer (useful for multi-page docs)
+                doc.setFontSize(7);
+                doc.text(`Roll No: ${studentInfo["Roll Number"]}`, margin, pageHeight - 5, { align: 'left' });
+                doc.text(`Page 1 of 1`, pageWidth - margin, pageHeight - 5, { align: 'right' });
 
-                doc.save(`${studentInfo["Roll Number"]}_Marksheet_AHSEC.pdf`);
+
+                doc.save(`${studentInfo["Roll Number"]}_Marksheet_GU_Law.pdf`);
             }
+
+            // Call drawPdfContent after the image is loaded (or immediately if load fails)
+            drawPdfContent();
         }
         
         // Helper functions
