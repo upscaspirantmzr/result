@@ -1,4 +1,3 @@
-Rahat, [23-06-2025 15:38]
 <!DOCTYPE html>
 <html lang="en" class=""> <!-- Default to light mode, class is toggled by JS -->
 <head>
@@ -306,12 +305,8 @@ Rahat, [23-06-2025 15:38]
             // --- 4. QR Code for Verification ---
             // Ensure autoTable.previous.finalY is valid before using it
 
-Rahat, [23-06-2025 15:38]
 const qrYPosition = doc.autoTable.previous.finalY ? doc.autoTable.previous.finalY + 15 : startY + 80; 
-            const qrString = `Roll: ${currentStudent["Roll Number"]}, Name: ${currentStudent["Name"]}, Subject: ${currentStudent["Subject"]}, Marks: ${isNaN(marks) ? "N/A" : marks},
-
-Rahat, [23-06-2025 15:38]
-Grade: ${grade}, Remark: ${remark};
+            const qrString = `Roll: ${currentStudent["Roll Number"]}, Name: ${currentStudent["Name"]}, Subject: ${currentStudent["Subject"]}, Marks: ${isNaN(marks) ? "N/A" : marks}, Grade: ${grade}, Remark: ${remark};
             const qr = qrcode(0, 'L');
             qr.addData(qrString);
             qr.make();
