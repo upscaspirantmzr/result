@@ -1,24 +1,17 @@
 <!DOCTYPE html>
-<html lang="en" class=""> <!-- Default to light mode, class is toggled by JS -->
-<head>
+<html lang="en" class=""> <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Advanced Exam Result Portal</title>
     
-    <!-- Tailwind CSS for modern styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- jsPDF for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- jsPDF AutoTable Plugin (REQUIRED for autoTable functionality) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-    <!-- jsPDF SVG Plugin (REQUIRED for addSvgAsImage functionality) -->
     <script src="https://unpkg.com/jspdf-svg@latest/dist/jspdf.plugin.svg.min.js"></script>
 
-    <!-- QR Code Generator Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 
-    <!-- Google Fonts for a clean look -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -53,7 +46,6 @@
 </head>
 <body class="transition-all">
 
-    <!-- Dark Mode Toggle -->
     <button id="theme-toggle" type="button" class="fixed top-4 right-4 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 z-50">
         <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8 0 1010.586 10.586z"></path></svg>
         <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
@@ -61,7 +53,6 @@
 
     <div class="w-full max-w-2xl mx-auto min-h-screen flex flex-col justify-center p-4">
         <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
-            <!-- Header Section -->
             <div class="p-6 bg-blue-600 dark:bg-blue-800 text-white text-center">
                 <div class="flex justify-center items-center gap-3">
                     <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.627 48.627 0 0 1 12 20.904a48.627 48.627 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.57 50.57 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.902 59.902 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" /></svg>
@@ -70,7 +61,6 @@
                 <p class="text-blue-200 dark:text-blue-300 mt-1">Check your full internal assessment marksheet</p>
             </div>
 
-            <!-- Form Section -->
             <div class="p-6 md:p-8 space-y-4">
                 <div>
                     <label for="roll" class="text-sm font-medium text-gray-700 dark:text-gray-300">Enter Your Roll Number</label>
@@ -81,7 +71,6 @@
                 </button>
             </div>
 
-            <!-- Result Display Section -->
             <div id="resultContainer" class="p-6 md:p-8 border-t border-gray-200 dark:border-gray-700"></div>
         </div>
         <footer class="text-center mt-6 text-sm text-gray-500 dark:text-gray-400">
@@ -133,7 +122,6 @@
                 const res = await fetch(sheetURL);
                 if (!res.ok) throw new Error("Network response was not ok");
                 allStudentData = await res.json();
-                 // Show a ready message in console or a subtle UI indicator if needed
                 console.log("Student data loaded successfully.");
             } catch (error) {
                 console.error("Failed to load data:", error);
@@ -151,7 +139,8 @@
 
             displayLoader();
             
-            // Use the pre-fetched data to find all matching records
+            // The .filter() method correctly finds ALL records that match the roll number.
+            // If any subjects are missing from the result, please ensure they are present in the source Google Sheet with the correct Roll Number.
             const results = allStudentData.filter(row =>
                 row["Roll Number"]?.trim().toLowerCase() === roll.toLowerCase()
             );
@@ -173,6 +162,7 @@
 
             let totalMarks = 0;
             let maxMarks = 0;
+            // The .map() function iterates over all the filtered results to build the table.
             const tableRows = results.map(subject => {
                 const marks = parseInt(subject["Marks"]?.trim(), 10);
                 const { grade, remark, color } = getGradeAndRemark(marks);
@@ -258,6 +248,7 @@
         }
 
         // --- FEATURE-RICH PDF DOWNLOAD for Full Marksheet ---
+        // This function has been updated for better table alignment and styling in the generated PDF.
         function downloadFullMarksheetPDF() {
             if (currentStudentResults.length === 0) { 
                 displayMessage('!', 'Error', 'No result data to download!', 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
@@ -270,7 +261,7 @@
             const margin = 10;
             const studentInfo = currentStudentResults[0];
 
-            // --- Page Border, Watermark, Header (same as before) ---
+            // --- Page Border & Watermark ---
             doc.setDrawColor(0, 32, 74);
             doc.setLineWidth(1);
             doc.rect(margin, margin, pageWidth - (2 * margin), doc.internal.pageSize.getHeight() - (2 * margin));
@@ -279,6 +270,7 @@
             doc.setFont("helvetica", "bold");
             doc.text("CONFIDENTIAL", pageWidth / 2, doc.internal.pageSize.getHeight() / 2, { angle: -45, align: 'center' });
 
+            // --- PDF Header ---
             const startX = margin + 5;
             let startY = margin + 10;
             const logoSvg = `<svg width="100" height="100" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 12.75C12.4142 12.75 12.75 12.4142 12.75 12V3.75C12.75 3.33579 12.4142 3 12 3C11.5858 3 11.25 3.33579 11.25 3.75V12C11.25 12.4142 11.5858 12.75 12 12.75Z" fill="#0c4a6e"/><path d="M16.2019 14.5048C16.59 14.2141 17.1355 14.2889 17.4262 14.6778L20.5338 18.8907C20.8245 19.2796 20.7497 19.8251 20.3608 20.1158C19.9719 20.4065 19.4264 20.3317 19.1357 19.9428L16.0281 15.7299C15.7374 15.341 15.8121 14.7955 16.2019 14.5048Z" fill="#0c4a6e"/><path d="M7.79812 14.5048C7.41001 14.2141 6.86447 14.2889 6.57379 14.6778L3.46621 18.8907C3.17553 19.2796 3.25034 19.8251 3.63923 20.1158C4.02812 20.4065 4.57366 20.3317 4.86434 19.9428L7.97192 15.7299C8.26260 15.341 8.18789 14.7955 7.79812 14.5048Z" fill="#0c4a6e"/><path fill-rule="evenodd" clip-rule="evenodd" d="M12 21.75C17.3848 21.75 21.75 17.3848 21.75 12C21.75 6.61522 17.3848 2.25 12 2.25C6.61522 2.25 2.25 6.61522 2.25 12C2.25 17.3848 6.61522 21.75 12 21.75ZM12 20.25C16.5563 20.25 20.25 16.5563 20.25 12C20.25 7.44365 16.5563 3.75 12 3.75C7.44365 3.75 3.75 7.44365 3.75 12C3.75 16.5563 7.44365 20.25 12 20.25Z" fill="#0c4a6e"/></svg>`;
@@ -290,10 +282,7 @@
             doc.text("Provisional Marksheet (Internal Assessment)", startX + 35, startY + 25);
             
             // --- Student Info Table ---
-            const studentFields = [
-                ["Full Name", studentInfo.Name],
-                ["Roll Number", studentInfo["Roll Number"]]
-            ];
+            const studentFields = [ ["Full Name", studentInfo.Name], ["Roll Number", studentInfo["Roll Number"]] ];
             doc.autoTable({
                 startY: startY + 40,
                 body: studentFields,
@@ -303,7 +292,7 @@
                 margin: { left: startX }
             });
 
-            // --- Main Results Table ---
+            // --- Main Results Table (IMPROVED ALIGNMENT) ---
             const tableBody = currentStudentResults.map(res => {
                 const marks = parseInt(res["Marks"]?.trim(), 10);
                 const { grade, remark } = getGradeAndRemark(marks);
@@ -314,20 +303,20 @@
                 head: [['Subject', 'Marks Obtained', 'Grade', 'Remarks']],
                 body: tableBody,
                 theme: 'grid',
-                headStyles: { fillColor: [0, 32, 74] },
-                styles: { fontSize: 10, cellPadding: 3 },
+                headStyles: { fillColor: [0, 32, 74], fontStyle: 'bold' },
+                styles: { fontSize: 10, cellPadding: 3, valign: 'middle' },
+                columnStyles: {
+                    1: { halign: 'center' }, // Center align 'Marks Obtained'
+                    2: { halign: 'center' }  // Center align 'Grade'
+                },
                 margin: { left: startX, right: margin }
             });
 
             // --- Totals and Percentage ---
-            let totalMarks = 0;
-            let maxMarks = 0;
+            let totalMarks = 0, maxMarks = 0;
             currentStudentResults.forEach(res => {
                 const marks = parseInt(res.Marks?.trim(), 10);
-                if (!isNaN(marks)) {
-                    totalMarks += marks;
-                    maxMarks += 100;
-                }
+                if (!isNaN(marks)) { totalMarks += marks; maxMarks += 100; }
             });
             const percentage = maxMarks > 0 ? ((totalMarks / maxMarks) * 100).toFixed(2) : 0;
             const overallResult = percentage >= 50 ? 'PASS' : 'FAIL';
@@ -337,11 +326,26 @@
                 ['Overall Result', overallResult]
             ];
             doc.autoTable({
-                startY: doc.autoTable.previous.finalY,
+                startY: doc.autoTable.previous.finalY + 2,
                 body: summaryFields,
                 theme: 'grid',
-                styles: { fontSize: 11, cellPadding: 3, fontStyle: 'bold' },
-                margin: { left: startX, right: margin }
+                styles: { fontSize: 11, cellPadding: 3 },
+                margin: { left: startX, right: margin },
+                // --- IMPROVED STYLING WITH DYNAMIC COLORS ---
+                didDrawCell: function(data) {
+                    if (data.section === 'body') {
+                        // Style the first column (labels)
+                        if (data.column.index === 0) {
+                            data.cell.styles.fontStyle = 'bold';
+                            data.cell.styles.fillColor = '#f5f5f5';
+                        }
+                        // Style the Overall Result value (Green for PASS, Red for FAIL)
+                        if (data.row.index === 2 && data.column.index === 1) {
+                            data.cell.styles.fontStyle = 'bold';
+                            data.cell.styles.textColor = (overallResult === 'PASS') ? [4, 120, 87] : [220, 38, 38];
+                        }
+                    }
+                }
             });
 
             // --- Footer, QR, Signature ---
