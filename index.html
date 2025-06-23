@@ -15,7 +15,6 @@
     <!-- jsPDF SVG Plugin (REQUIRED for addSvgAsImage functionality) -->
     <script src="https://unpkg.com/jspdf-svg@latest/dist/jspdf.plugin.svg.min.js"></script>
 
-
     <!-- QR Code Generator Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 
@@ -54,14 +53,11 @@
         <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
             <!-- Header Section -->
             <div class="p-6 bg-blue-600 dark:bg-blue-800 text-white text-center">
-                   <div class="flex justify-center items-center gap-3">
-                       <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.627 48.627 0 0 1 12 20.904a48.627 48.627 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.57 50.57 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.902 59.902 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0
-
-Rahat, [23-06-2025 15:38]
-0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" /></svg>
-                       <h1 class="text-2xl font-bold">Exam Result Portal</h1>
-                   </div>
-                 <p class="text-blue-200 dark:text-blue-300 mt-1">Check your internal assessment scores</p>
+                <div class="flex justify-center items-center gap-3">
+                    <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.627 48.627 0 0 1 12 20.904a48.627 48.627 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.57 50.57 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.902 59.902 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" /></svg>
+                    <h1 class="text-2xl font-bold">Exam Result Portal</h1>
+                </div>
+                <p class="text-blue-200 dark:text-blue-300 mt-1">Check your internal assessment scores</p>
             </div>
 
             <!-- Form Section -->
@@ -123,9 +119,7 @@ Rahat, [23-06-2025 15:38]
                         document.documentElement.classList.add('dark');
                         localStorage.setItem('color-theme', 'dark');
                     } else {
-
-Rahat, [23-06-2025 15:38]
-document.documentElement.classList.remove('dark');
+                        document.documentElement.classList.remove('dark');
                         localStorage.setItem('color-theme', 'light');
                     }
                 } else {
@@ -161,7 +155,7 @@ document.documentElement.classList.remove('dark');
             } catch (error) {
                 console.error("Failed to load subjects:", error);
                 subjectSelect.innerHTML = '<option value="">-- Error Loading Subjects --</option>';
-                displayMessage('❗', 'Initialization Error', 'Could not load the list of subjects. Please refresh the page.', 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
+                displayMessage('❗', 'Initialization Error', 'Could not load the list of subjects. Please refresh the page or check your connection.', 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
             }
         }
 
@@ -199,13 +193,11 @@ document.documentElement.classList.remove('dark');
             const marks = parseInt(student["Marks"]?.trim(), 10);
             const { grade, remark, color } = getGradeAndRemark(marks);
 
-            resultContainer.innerHTML = 
+            resultContainer.innerHTML = `
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Result Details</h3>
                 <div class="space-y-3">
                     <div class="flex justify-between items-center text-sm p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"><span class="font-semibold text-gray-600 dark:text-gray-300">Roll Number:</span><span class="font-mono bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded">${student["Roll Number"]}</span></div>
-
-Rahat, [23-06-2025 15:38]
-<div class="flex justify-between items-center text-sm p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"><span class="font-semibold text-gray-600 dark:text-gray-300">Name:</span><span class="text-gray-900 dark:text-white font-medium">${student["Name"]}</span></div>
+                    <div class="flex justify-between items-center text-sm p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"><span class="font-semibold text-gray-600 dark:text-gray-300">Name:</span><span class="text-gray-900 dark:text-white font-medium">${student["Name"]}</span></div>
                     <div class="flex justify-between items-center text-sm p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"><span class="font-semibold text-gray-600 dark:text-gray-300">Subject:</span><span class="text-gray-900 dark:text-white font-medium">${student["Subject"]}</span></div>
                     <div class="flex justify-between items-center text-sm p-3 ${color.bg} rounded-lg">
                         <span class="font-semibold ${color.text}">Grade: <span class="font-bold text-lg">${grade}</span></span>
@@ -216,7 +208,7 @@ Rahat, [23-06-2025 15:38]
                     <button onclick="downloadPDF()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-all flex items-center justify-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>Download PDF</button>
                     <button onclick="clearForm()" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-all">Check Another</button>
                 </div>
-            ;
+            `;
         }
         
         // --- UI & Utility Helpers ---
@@ -230,14 +222,9 @@ Rahat, [23-06-2025 15:38]
             return { grade: 'F', remark: 'Fail', color: { bg: 'bg-red-100 dark:bg-red-900/50', text: 'text-red-800 dark:text-red-200' } };
         }
 
-        function displayLoader() { /* ... same as before ... */ }
-        function displayMessage(icon, title, message, colorClasses) { /* ... same as before ... */ }
-        function clearForm() { /* ... same as before ... */ }
-        
         // --- FEATURE-RICH PDF DOWNLOAD ---
         function downloadPDF() {
             if (!currentStudent || !currentStudent["Roll Number"]) { 
-                // Using a custom message box instead of alert()
                 displayMessage('!', 'Error', 'No result data to download!', 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
                 return; 
             }
@@ -246,26 +233,23 @@ Rahat, [23-06-2025 15:38]
             const doc = new jsPDF();
             const pageWidth = doc.internal.pageSize.getWidth();
             const pageHeight = doc.internal.pageSize.getHeight();
-            const margin = 10; // Margin from the edge of the page for the border
+            const margin = 10;
 
-Rahat, [23-06-2025 15:38]
-// --- Page Border ---
+            // --- Page Border ---
             doc.setDrawColor(0, 32, 74); // Dark blue for border
-            doc.setLineWidth(1); // Border thickness
-            doc.rect(margin, margin, pageWidth - (2 * margin), pageHeight - (2 * margin)); // Draw rectangle for border
+            doc.setLineWidth(1);
+            doc.rect(margin, margin, pageWidth - (2 * margin), pageHeight - (2 * margin));
 
             // --- 1. Watermark ---
             doc.setFontSize(72);
-            doc.setTextColor(230, 230, 230); // Light gray
+            doc.setTextColor(230, 230, 230);
             doc.setFont("helvetica", "bold");
-            // Adjust watermark position to be within the border
             doc.text("CONFIDENTIAL", pageWidth / 2, pageHeight / 2, { angle: -45, align: 'center' });
 
             // --- 2. University Logo (SVG Placeholder) & Header ---
-            const startX = margin + 5; // Starting X position for content inside the border
-            let startY = margin + 10; // Starting Y position for content inside the border
-
-            const logoSvg = <svg width="100" height="100" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 12.75C12.4142 12.75 12.75 12.4142 12.75 12V3.75C12.75 3.33579 12.4142 3 12 3C11.5858 3 11.25 3.33579 11.25 3.75V12C11.25 12.4142 11.5858 12.75 12 12.75Z" fill="#0c4a6e"/><path d="M16.2019 14.5048C16.59 14.2141 17.1355 14.2889 17.4262 14.6778L20.5338 18.8907C20.8245 19.2796 20.7497 19.8251 20.3608 20.1158C19.9719 20.4065 19.4264 20.3317 19.1357 19.9428L16.0281 15.7299C15.7374 15.341 15.8121 14.7955 16.2019 14.5048Z" fill="#0c4a6e"/><path d="M7.79812 14.5048C7.41001 14.2141 6.86447 14.2889 6.57379 14.6778L3.46621 18.8907C3.17553 19.2796 3.25034 19.8251 3.63923 20.1158C4.02812 20.4065 4.57366 20.3317 4.86434 19.9428L7.97192 15.7299C8.26260 15.341 8.18789 14.7955 7.79812 14.5048Z" fill="#0c4a6e"/><path fill-rule="evenodd" clip-rule="evenodd" d="M12 21.75C17.3848 21.75 21.75 17.3848 21.75 12C21.75 6.61522 17.3848 2.25 12 2.25C6.61522 2.25 2.25 6.61522 2.25 12C2.25 17.3848 6.61522 21.75 12 21.75ZM12 20.25C16.5563 20.25 20.25 16.5563 20.25 12C20.25 7.44365 16.5563 3.75 12 3.75C7.44365 3.75 3.75 7.44365 3.75 12C3.75 16.5563 7.44365 20.25 12 20.25Z" fill="#0c4a6e"/></svg>;
+            const startX = margin + 5;
+            let startY = margin + 10;
+            const logoSvg = `<svg width="100" height="100" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 12.75C12.4142 12.75 12.75 12.4142 12.75 12V3.75C12.75 3.33579 12.4142 3 12 3C11.5858 3 11.25 3.33579 11.25 3.75V12C11.25 12.4142 11.5858 12.75 12 12.75Z" fill="#0c4a6e"/><path d="M16.2019 14.5048C16.59 14.2141 17.1355 14.2889 17.4262 14.6778L20.5338 18.8907C20.8245 19.2796 20.7497 19.8251 20.3608 20.1158C19.9719 20.4065 19.4264 20.3317 19.1357 19.9428L16.0281 15.7299C15.7374 15.341 15.8121 14.7955 16.2019 14.5048Z" fill="#0c4a6e"/><path d="M7.79812 14.5048C7.41001 14.2141 6.86447 14.2889 6.57379 14.6778L3.46621 18.8907C3.17553 19.2796 3.25034 19.8251 3.63923 20.1158C4.02812 20.4065 4.57366 20.3317 4.86434 19.9428L7.97192 15.7299C8.26260 15.341 8.18789 14.7955 7.79812 14.5048Z" fill="#0c4a6e"/><path fill-rule="evenodd" clip-rule="evenodd" d="M12 21.75C17.3848 21.75 21.75 17.3848 21.75 12C21.75 6.61522 17.3848 2.25 12 2.25C6.61522 2.25 2.25 6.61522 2.25 12C2.25 17.3848 6.61522 21.75 12 21.75ZM12 20.25C16.5563 20.25 20.25 16.5563 20.25 12C20.25 7.44365 16.5563 3.75 12 3.75C7.44365 3.75 3.75 7.44365 3.75 12C3.75 16.5563 7.44365 20.25 12 20.25Z" fill="#0c4a6e"/></svg>`;
             doc.addSvgAsImage(logoSvg, startX, startY, 25, 25);
             doc.setFont("helvetica", "bold");
             doc.setFontSize(22);
@@ -290,7 +274,7 @@ Rahat, [23-06-2025 15:38]
                 ["Remarks", remark]
             ];
             
-            startY = startY + 50; // Position table below the header
+            startY = startY + 50;
             doc.autoTable({
                 startY: startY,
                 head: [['Parameter', 'Details']],
@@ -299,14 +283,12 @@ Rahat, [23-06-2025 15:38]
                 headStyles: { fillColor: [0, 32, 74] },
                 styles: { fontSize: 11, cellPadding: 3 },
                 columnStyles: { 0: { fontStyle: 'bold' } },
-                margin: { left: startX, right: margin } // Adjust table margins
+                margin: { left: startX, right: margin }
             });
 
             // --- 4. QR Code for Verification ---
-            // Ensure autoTable.previous.finalY is valid before using it
-
-const qrYPosition = doc.autoTable.previous.finalY ? doc.autoTable.previous.finalY + 15 : startY + 80; 
-            const qrString = `Roll: ${currentStudent["Roll Number"]}, Name: ${currentStudent["Name"]}, Subject: ${currentStudent["Subject"]}, Marks: ${isNaN(marks) ? "N/A" : marks}, Grade: ${grade}, Remark: ${remark};
+            const qrYPosition = doc.autoTable.previous.finalY ? doc.autoTable.previous.finalY + 15 : startY + 80; 
+            const qrString = `Roll: ${currentStudent["Roll Number"]}, Name: ${currentStudent["Name"]}, Subject: ${currentStudent["Subject"]}, Marks: ${isNaN(marks) ? "N/A" : marks}, Grade: ${grade}`;
             const qr = qrcode(0, 'L');
             qr.addData(qrString);
             qr.make();
@@ -314,33 +296,26 @@ const qrYPosition = doc.autoTable.previous.finalY ? doc.autoTable.previous.final
             doc.addImage(qrImgData, 'PNG', startX, qrYPosition, 40, 40);
 
             // --- 5. Footer & Declarations ---
-            const finalY = Math.max(doc.autoTable.previous.finalY, qrYPosition + 40); // Take the max of table end or QR end for consistent footer placement
+            const finalY = Math.max(doc.autoTable.previous.finalY, qrYPosition + 40);
             doc.setFontSize(10);
             doc.setTextColor(100, 100, 100);
-            doc.text(Date of Declaration: ${new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}, startX, finalY + 15);
+            doc.text(`Date of Declaration: ${new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}`, startX, finalY + 15);
             doc.text("This is a computer-generated document. No signature is required.", startX, finalY + 20);
             
-            const signatureX = pageWidth - margin - 50; // Position signature block from right margin
+            const signatureX = pageWidth - margin - 50;
             doc.setLineWidth(0.5);
             doc.line(signatureX, finalY + 40, signatureX + 45, finalY + 40);
             doc.text("Controller of Examinations", signatureX + 22.5, finalY + 45, {align: 'center'});
 
-            doc.save(${currentStudent["Roll Number"]}_${currentStudent["Subject"]}_Result.pdf);
+            doc.save(`${currentStudent["Roll Number"]}_${currentStudent["Subject"]}_Result.pdf`);
         }
         
-        // Re-assigning loader and message functions to the window scope for simplicity
-        window.displayLoader = displayLoader;
-        window.displayMessage = displayMessage;
-        window.clearForm = clearForm;
-        window.downloadPDF = downloadPDF; // Ensure downloadPDF is also globally accessible
-
-        // Note: The previous simple helper functions are used here without re-declaration
-        // To save space. They are: displayLoader, displayMessage, clearForm
+        // Helper functions
         function displayLoader() {
-            document.getElementById("resultContainer").innerHTML = <div class="flex flex-col items-center justify-center text-center p-4"><svg class="animate-spin h-8 w-8 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><p class="mt-3 text-lg font-semibold text-gray-700 dark:text-gray-300">Fetching Your Result...</p><p class="text-sm text-gray-500 dark:text-gray-400">Please wait a moment.</p></div>;
+            document.getElementById("resultContainer").innerHTML = `<div class="flex flex-col items-center justify-center text-center p-4"><svg class="animate-spin h-8 w-8 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><p class="mt-3 text-lg font-semibold text-gray-700 dark:text-gray-300">Fetching Your Result...</p><p class="text-sm text-gray-500 dark:text-gray-400">Please wait a moment.</p></div>`;
         }
         function displayMessage(icon, title, message, colorClasses) {
-            document.getElementById("resultContainer").innerHTML = <div class="rounded-lg p-4 ${colorClasses}"><div class="flex"><div class="flex-shrink-0 text-2xl">${icon}</div><div class="ml-3"><h3 class="text-sm font-bold">${title}</h3><div class="text-sm mt-1">${message}</div></div></div></div>`;
+            document.getElementById("resultContainer").innerHTML = `<div class="rounded-lg p-4 ${colorClasses}"><div class="flex"><div class="flex-shrink-0 text-2xl">${icon}</div><div class="ml-3"><h3 class="text-sm font-bold">${title}</h3><div class="text-sm mt-1">${message}</div></div></div></div>`;
         }
         function clearForm() {
             document.getElementById("roll").value = "";
