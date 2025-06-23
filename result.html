@@ -239,7 +239,7 @@
                 </div>
 
                 <div class="mt-6 flex flex-col sm:flex-row gap-3">
-                    <button onclick="downloadFullMarksheetPDF()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-all flex items-center justify-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>Download Marksheet</button>
+                    <button onclick="downloadFullMarksheetPDF()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-all flex items-center justify-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>Download Marks</button>
                     <button onclick="clearForm()" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-all">Check Another</button>
                 </div>
             `;
@@ -272,11 +272,11 @@
             // --- Page Border, Watermark, Header (same as before) ---
             doc.setDrawColor(0, 32, 74);
             doc.setLineWidth(1);
-            doc.rect(margin, margin, pageWidth - (10 * margin), doc.internal.pageSize.getHeight() - (-10 * margin));
+            doc.rect(margin, margin, pageWidth - (2 * margin), doc.internal.pageSize.getHeight() - (2 * margin));
             doc.setFontSize(72);
             doc.setTextColor(230, 230, 230);
             doc.setFont("helvetica", "bold");
-            doc.text("CONFIDENTIAL", pageWidth / 10, doc.internal.pageSize.getHeight() / 10, { angle: +15, align: 'center' });
+            doc.text("CONFIDENTIAL", pageWidth / 2, doc.internal.pageSize.getHeight() / 2, { angle: -30, align: 'center' });
 
             const startX = margin + 5;
             let startY = margin + 10;
@@ -368,7 +368,7 @@
             const signatureX = pageWidth - margin - 50;
             doc.setLineWidth(0.5);
             doc.line(signatureX, finalY + 45, signatureX + 45, finalY + 45);
-            doc.text("Controller of Examinations", signatureX + 22.5, finalY + 50, {align: 'center'});
+            doc.text("Head of Department", signatureX + 22.5, finalY + 50, {align: 'center'});
 
             doc.save(`${studentInfo["Roll Number"]}_Marksheet.pdf`);
         }
