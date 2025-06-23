@@ -328,30 +328,35 @@
 
             // Function to draw the rest of the PDF content
             function drawPdfContent() {
+                // Add logo if loaded
                 if (imgData) {
                     doc.addImage(imgData, 'PNG', (pageWidth / 2) - 25, margin + 5, 50, 50); // x, y, width, height
                 }
 
+                // Calculate Y position based on whether logo is present
+                const headerStartY = margin + (imgData ? 65 : 15);
+                const lineY = margin + (imgData ? 95 : 45);
+                const personalDetailsY = margin + (imgData ? 103 : 53);
+
                 // --- Header ---
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(16);
-                doc.text("GAUHATI UNIVERSITY", pageWidth / 2, margin + (imgData ? 65 : 15), { align: 'center' }); // Adjusted Y for logo
+                doc.text("GAUHATI UNIVERSITY", pageWidth / 2, headerStartY, { align: 'center' });
                 doc.setFontSize(14);
-                doc.text("FACULTY OF LAW", pageWidth / 2, margin + (imgData ? 73 : 23), { align: 'center' });
+                doc.text("FACULTY OF LAW", pageWidth / 2, headerStartY + 8, { align: 'center' });
                 doc.setFontSize(12);
-                doc.text("AHSEC HS FINAL RESULT", pageWidth / 2, margin + (imgData ? 81 : 31), { align: 'center' });
+                doc.text("AHSEC HS FINAL RESULT", pageWidth / 2, headerStartY + 16, { align: 'center' });
                 doc.setFontSize(14);
-                doc.text("PROVISIONAL MARKSHEET", pageWidth / 2, margin + (imgData ? 89 : 39), { align: 'center' });
+                doc.text("PROVISIONAL MARKSHEET", pageWidth / 2, headerStartY + 24, { align: 'center' });
                 doc.setLineWidth(0.5);
-                doc.line(margin + 10, margin + (imgData ? 95 : 45), pageWidth - margin - 10, margin + (imgData ? 95 : 45));
+                doc.line(margin + 10, lineY, pageWidth - margin - 10, lineY);
 
                 // --- Personal Details ---
-                let startY = margin + (imgData ? 103 : 53);
                 doc.setFontSize(11);
                 doc.setFont("helvetica", "bold");
-                doc.text("PERSONAL DETAILS:", margin + 5, startY);
+                doc.text("PERSONAL DETAILS:", margin + 5, personalDetailsY);
                 doc.autoTable({
-                    startY: startY + 2,
+                    startY: personalDetailsY + 2,
                     body: [
                         ['Roll No:', studentInfo["Roll Number"] || 'N/A'],
                         ['Name:', studentInfo.Name || 'N/A'],
