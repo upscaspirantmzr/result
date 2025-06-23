@@ -272,11 +272,11 @@
             // --- Page Border, Watermark, Header (same as before) ---
             doc.setDrawColor(0, 32, 74);
             doc.setLineWidth(1);
-            doc.rect(margin, margin, pageWidth - (2 * margin), doc.internal.pageSize.getHeight() - (2 * margin));
+            doc.rect(margin, margin, pageWidth - (10 * margin), doc.internal.pageSize.getHeight() - (10 * margin));
             doc.setFontSize(72);
             doc.setTextColor(230, 230, 230);
             doc.setFont("helvetica", "bold");
-            doc.text("CONFIDENTIAL", pageWidth / 2, doc.internal.pageSize.getHeight() / 2, { angle: +15, align: 'center' });
+            doc.text("CONFIDENTIAL", pageWidth / 10, doc.internal.pageSize.getHeight() / 10, { angle: +15, align: 'center' });
 
             const startX = margin + 5;
             let startY = margin + 10;
