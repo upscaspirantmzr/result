@@ -384,7 +384,7 @@
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(22);
                 doc.setTextColor(0, 32, 74);
-                doc.text("Assam University", headerTextXOffset, currentY + 10);
+                doc.text("Mzr University", headerTextXOffset, currentY + 10);
 
                 doc.setFontSize(12);
                 doc.setFont("helvetica", "normal");
@@ -482,7 +482,7 @@
                 // Print footer lines from bottom up
                 doc.text("This is a computer-generated document. No signature is required.", margin + 5, footerBottomY);
                 footerBottomY -= (footerTextSize + footerLineSpacing);
-                doc.text(`Accessed From IP: ${userIPAddress}`, margin + 5, footerBottomY);
+                doc.text(`Your IP Address: ${userIPAddress}`, margin + 5, footerBottomY);
                 footerBottomY -= (footerTextSize + footerLineSpacing);
                 doc.text(`Date of Declaration: ${new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}`, margin + 5, footerBottomY);
                 console.log("Footer text added.");
