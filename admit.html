@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Admit Card Portal</title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- PapaParse for parsing CSV data from Google Sheets -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/papaparse/5.3.2/papaparse.min.js"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Using Inter as the default font */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Styles for printing the admit card */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #admitCardContainer, #admitCardContainer * {
+                visibility: visible;
+            }
+            #admitCardContainer {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                border: none;
+                box-shadow: none;
+            }
+            #printButton {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-lg mx-auto bg-white rounded-xl shadow-lg p-6 md:p-8">
+        
+        <!-- Header Section -->
+        <div class="text-center mb-6">
+            <img src="https://placehold.co/100x100/E2E8F0/4A5568?text=INSTITUTE\nLOGO" alt="Institute Logo" class="mx-auto mb-4 rounded-full">
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Admit Card Download Portal</h1>
+            <p class="text-gray-500 mt-2">Enter your Roll Number to generate your admit card.</p>
+        </div>
+
+        <!-- Input Form -->
+        <form id="admitCardForm" class="space-y-4">
+            <div>
+                <label for="rollNumberInput" class="block text-sm font-medium text-gray-700">Roll Number</label>
+                <input type="text" id="rollNumberInput" name="rollNumber" class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., 2025001" required>
+            </div>
+            <button type="submit" id="submitButton" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-300">
+                Download Admit Card
+            </button>
+        </form>
+
+        <!-- Loading Spinner -->
+        <div id="loading" class="hidden text-center py-4">
+            <svg class="animate-spin h-6 w-6 text-indigo-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="mt-2 text-gray-600">Fetching data...</p>
+        </div>
+
+        <!-- Error Message Display -->
+        <div id="errorMessage" class="hidden mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-md"></div>
+
+        <!-- Admit Card Display Area -->
+        <div id="admitCardContainer" class="hidden mt-6 border border-gray-300 rounded-lg p-4 md:p-6 bg-white">
+            <div id="admitCard">
+                <!-- Admit Card Header -->
+                <div class="text-center pb-4 border-b-2 border-dashed border-gray-300">
+                    <h2 class="text-xl font-bold text-gray-800">Your Institute Name</h2>
+                    <p class="text-sm text-gray-500">Affiliated to University/Board Name</p>
+                    <p class="mt-2 text-lg font-semibold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-full inline-block">ADMIT CARD - FINAL EXAM 2025</p>
+                </div>
+                
+                <!-- Student Details and Photo -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+                    <div class="md:col-span-3 space-y-3 text-sm">
+                        <p><strong class="font-medium text-gray-600 w-32 inline-block">Roll Number:</strong> <span id="studentRollNo" class="font-mono text-gray-800"></span></p>
+                        <p><strong class="font-medium text-gray-600 w-32 inline-block">Student Name:</strong> <span id="studentName" class="text-gray-800 font-semibold"></span></p>
+                        <p><strong class="font-medium text-gray-600 w-32 inline-block">Father's Name:</strong> <span id="fatherName" class="text-gray-800"></span></p>
+                         <p><strong class="font-medium text-gray-600 w-32 inline-block">Course:</strong> <span id="courseName" class="text-gray-800"></span></p>
+                        <p><strong class="font-medium text-gray-600 w-32 inline-block">Exam Center:</strong> <span id="examCenter" class="text-gray-800 font-semibold"></span></p>
+                    </div>
+                    <div class="flex justify-center items-start">
+                        <img id="studentPhoto" src="" alt="Student Photo" class="w-28 h-32 object-cover border-2 border-gray-300 rounded-md" onerror="this.onerror=null; this.src='https://placehold.co/120x150/E2E8F0/4A5568?text=Photo';">
+                    </div>
+                </div>
+
+                <!-- Exam Schedule -->
+                <div class="mt-6">
+                     <h3 class="text-md font-bold text-gray-700 mb-2 border-b border-gray-200 pb-1">Exam Schedule</h3>
+                     <div id="examSchedule" class="text-sm">
+                        <!-- Schedule will be populated by JS -->
+                     </div>
+                </div>
+
+                <!-- Instructions and Signatures -->
+                <div class="mt-8 pt-4 border-t border-gray-300 text-xs text-gray-600">
+                    <h3 class="font-bold text-sm text-gray-700 mb-2">Instructions for Candidate:</h3>
+                    <ol class="list-decimal list-inside space-y-1">
+                        <li>Reach the examination center at least 30 minutes before the commencement of the exam.</li>
+                        <li>No electronic devices (mobiles, smart watches, etc.) are allowed inside the examination hall.</li>
+                        <li>Bring a valid photo ID proof along with this admit card.</li>
+                        <li>This admit card must be preserved and produced on demand on all days of the examination.</li>
+                    </ol>
+                    <div class="flex justify-between mt-12">
+                        <div class="text-center">
+                            <p class="border-t-2 border-gray-400 pt-1">Candidate's Signature</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="border-t-2 border-gray-400 pt-1">Controller of Examinations</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Print Button -->
+            <div class="text-center mt-6">
+                <button id="printButton" onclick="window.print()" class="px-8 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all">
+                    Print / Save as PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // --- IMPORTANT SETUP ---
+    // 1. Create a Google Sheet with your student data.
+    // 2. The first row MUST be the headers. Example headers:
+    //    Roll Number, Student Name, Father Name, Course, Exam Center, Photo URL, Exam Dates
+    //    (The Photo URL should be a public link to an image of the student)
+    //    For "Exam Dates", you can format it like: "Subject1:YYYY-MM-DD;Subject2:YYYY-MM-DD"
+    // 3. In Google Sheets, go to File -> Share -> Publish to web.
+    // 4. In the dialog, select "Entire Document" and "Comma-separated values (.csv)".
+    // 5. Click "Publish" and copy the generated URL.
+    // 6. Paste the URL below, replacing the placeholder.
+
+    const GOOGLE_SHEET_CSV_URL = 'YOUR_PUBLISHED_GOOGLE_SHEET_CSV_URL_HERE';
+
+    // --- DOM ELEMENT SELECTION ---
+    const form = document.getElementById('admitCardForm');
+    const rollNumberInput = document.getElementById('rollNumberInput');
+    const submitButton = document.getElementById('submitButton');
+    const loadingDiv = document.getElementById('loading');
+    const errorMessageDiv = document.getElementById('errorMessage');
+    const admitCardContainer = document.getElementById('admitCardContainer');
+
+    // Admit Card Fields
+    const studentRollNoEl = document.getElementById('studentRollNo');
+    const studentNameEl = document.getElementById('studentName');
+    const fatherNameEl = document.getElementById('fatherName');
+    const courseNameEl = document.getElementById('courseName');
+    const examCenterEl = document.getElementById('examCenter');
+    const studentPhotoEl = document.getElementById('studentPhoto');
+    const examScheduleEl = document.getElementById('examSchedule');
+
+    // --- EVENT LISTENER ---
+    form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        fetchAdmitCardData();
+    });
+
+    // --- MAIN FUNCTION to fetch and process data ---
+    async function fetchAdmitCardData() {
+        const rollNumber = rollNumberInput.value.trim();
+
+        // UI Reset
+        admitCardContainer.classList.add('hidden');
+        errorMessageDiv.classList.add('hidden');
+        errorMessageDiv.textContent = '';
+        loadingDiv.classList.remove('hidden');
+        submitButton.disabled = true;
+
+        if (!rollNumber) {
+            showError('Please enter a Roll Number.');
+            resetUIState();
+            return;
+        }
+
+        if (GOOGLE_SHEET_CSV_URL === 'YOUR_PUBLISHED_GOOGLE_SHEET_CSV_URL_HERE') {
+            showError('Configuration error: The Google Sheet URL is not set up.');
+            resetUIState();
+            return;
+        }
+
+        try {
+            const response = await fetch(GOOGLE_SHEET_CSV_URL);
+            if (!response.ok) {
+                throw new Error('Network response was not ok. Could not fetch data sheet.');
+            }
+            const csvText = await response.text();
+            
+            // Parse the CSV data
+            Papa.parse(csvText, {
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    // IMPORTANT: The key used here ('Roll Number') must EXACTLY match the header in your CSV file.
+                    const studentData = results.data.find(row => row['Roll Number'] === rollNumber);
+                    
+                    if (studentData) {
+                        displayAdmitCard(studentData);
+                    } else {
+                        showError(`No record found for Roll Number: ${rollNumber}. Please check the number and try again.`);
+                    }
+                    resetUIState();
+                },
+                error: function(error) {
+                    showError('Failed to parse the data sheet. Please check the CSV format.');
+                    resetUIState();
+                }
+            });
+
+        } catch (error) {
+            console.error('Fetch Error:', error);
+            showError('An error occurred while fetching the data. Please check your internet connection or the sheet URL.');
+            resetUIState();
+        }
+    }
+
+    // --- HELPER FUNCTIONS ---
+
+    function displayAdmitCard(data) {
+        // IMPORTANT: The keys used here ('Student Name', 'Photo URL', etc.) must EXACTLY match your CSV headers.
+        studentRollNoEl.textContent = data['Roll Number'] || 'N/A';
+        studentNameEl.textContent = data['Student Name'] || 'N/A';
+        fatherNameEl.textContent = data['Father Name'] || 'N/A';
+        courseNameEl.textContent = data['Course'] || 'N/A';
+        examCenterEl.textContent = data['Exam Center'] || 'N/A';
+        studentPhotoEl.src = data['Photo URL'] || 'https://placehold.co/120x150/E2E8F0/4A5568?text=Photo';
+        
+        // Populate exam schedule
+        const examDates = data['Exam Dates']; // e.g., "Physics:2025-06-10;Chemistry:2025-06-12;Maths:2025-06-15"
+        examScheduleEl.innerHTML = ''; // Clear previous schedule
+        if (examDates) {
+            const scheduleTable = document.createElement('table');
+            scheduleTable.className = 'w-full text-left border-collapse';
+            scheduleTable.innerHTML = `
+                <thead>
+                    <tr>
+                        <th class="p-2 border-b-2 border-gray-200 bg-gray-50">Subject</th>
+                        <th class="p-2 border-b-2 border-gray-200 bg-gray-50">Date</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            `;
+            const tbody = scheduleTable.querySelector('tbody');
+            const subjects = examDates.split(';');
+            subjects.forEach(subjectInfo => {
+                const [subject, date] = subjectInfo.split(':');
+                if(subject && date) {
+                    const row = tbody.insertRow();
+                    row.innerHTML = `
+                        <td class="p-2 border-b border-gray-200">${subject.trim()}</td>
+                        <td class="p-2 border-b border-gray-200">${date.trim()}</td>
+                    `;
+                }
+            });
+            examScheduleEl.appendChild(scheduleTable);
+        } else {
+            examScheduleEl.textContent = 'Exam schedule not available.';
+        }
+
+        admitCardContainer.classList.remove('hidden');
+    }
+
+    function showError(message) {
+        errorMessageDiv.textContent = message;
+        errorMessageDiv.classList.remove('hidden');
+    }
+    
+    function resetUIState() {
+        loadingDiv.classList.add('hidden');
+        submitButton.disabled = false;
+    }
+
+</script>
+
+</body>
+</html>
