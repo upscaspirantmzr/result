@@ -38,7 +38,7 @@
                 border: none;
                 box-shadow: none;
             }
-            #printButton {
+            #printButton, #errorContainer {
                 display: none;
             }
         }
@@ -66,17 +66,21 @@
             </button>
         </form>
 
-        <!-- Loading Spinner -->
-        <div id="loading" class="hidden text-center py-4">
-            <svg class="animate-spin h-6 w-6 text-indigo-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <p class="mt-2 text-gray-600">Fetching data...</p>
+        <!-- Container for Loading and Error Messages -->
+        <div id="statusContainer" class="mt-4">
+            <!-- Loading Spinner -->
+            <div id="loading" class="hidden text-center py-4">
+                <svg class="animate-spin h-6 w-6 text-indigo-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="mt-2 text-gray-600">Fetching data...</p>
+            </div>
+
+            <!-- Error Message Display -->
+            <div id="errorMessage" class="hidden p-4 bg-red-100 border-l-4 border-red-500 text-red-700 rounded-md"></div>
         </div>
 
-        <!-- Error Message Display -->
-        <div id="errorMessage" class="hidden mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-md"></div>
 
         <!-- Admit Card Display Area -->
         <div id="admitCardContainer" class="hidden mt-6 border border-gray-300 rounded-lg p-4 md:p-6 bg-white">
@@ -143,10 +147,16 @@
 // Wait for the DOM to be fully loaded before running the script
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- CONFIGURATION ---
-    // NOTE: The URL has been corrected to the proper export format for fetching CSV data.
-    // Ensure your sheet is public ("Anyone with the link can view").
-    const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1qvKICCt-ugoFjLADZwyk4TRvMpnPZ4RgJBuQ5umhm34/export?format=csv&gid=0';
+    // --- VERY IMPORTANT CONFIGURATION ---
+    // 1. REPLACE THE URL BELOW with your own Google Sheet's public CSV URL.
+    // 2. How to get the URL:
+    //    a. In Google Sheets, go to File -> Share -> Publish to web.
+    //    b. In the dialog, for 'Link', select "Entire Document" or the specific sheet.
+    //    c. For 'Embed', select "Comma-separated values (.csv)".
+    //    d. Click "Publish" and copy the generated URL. It may start with 'https://docs.google.com/spreadsheets/d/e/...'
+    //
+    // THIS IS A SAMPLE URL FOR TESTING. YOU MUST REPLACE IT.
+    const GOOGLE_SHEET_URL_FROM_PUBLISH_TO_WEB = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSPYS8043dgdHcTBfvfzM3P6FFLxDgVUkuPJKX9Aerm2KALvFMEtKAoo3uq5HIrarSC797RcUoUrYU_/pubhtml'; 
 
     // --- DOM ELEMENT SELECTION ---
     const form = document.getElementById('admitCardForm');
@@ -165,84 +175,88 @@ document.addEventListener('DOMContentLoaded', () => {
     const studentPhotoEl = document.getElementById('studentPhoto');
     const examScheduleEl = document.getElementById('examSchedule');
 
-    // --- EVENT LISTENER ---
-    form.addEventListener('submit', function(event) {
+    form.addEventListener('submit', (event) => {
         event.preventDefault();
         fetchAdmitCardData();
     });
 
-    // --- MAIN FUNCTION to fetch and process data ---
-    async function fetchAdmitCardData() {
-        const rollNumber = rollNumberInput.value.trim().toUpperCase(); // Standardize roll number to uppercase
+    function fetchAdmitCardData() {
+        const rollNumber = rollNumberInput.value.trim().toUpperCase();
 
-        // UI Reset
+        // --- UI Reset ---
         admitCardContainer.classList.add('hidden');
         errorMessageDiv.classList.add('hidden');
-        errorMessageDiv.textContent = '';
+        errorMessageDiv.innerHTML = ''; // Clear previous errors
         loadingDiv.classList.remove('hidden');
         submitButton.disabled = true;
 
+        // --- Step 1: Basic Validations ---
         if (!rollNumber) {
-            showError('Please enter a Roll Number.');
+            showError('Please enter your Roll Number.');
             resetUIState();
             return;
         }
 
+        if (GOOGLE_SHEET_URL_FROM_PUBLISH_TO_WEB.includes('1qvKICCt-ugoFjLADZwyk4TRvMpnPZ4RgJBuQ5umhm34')) {
+            showError('<strong>Configuration Error:</strong> You are still using the sample Google Sheet URL. Please replace it in the script with the URL of your own published sheet.');
+            resetUIState();
+            return;
+        }
+
+        // --- Step 2: Fetch and Parse Data using PapaParse ---
         try {
-            // Now we call PapaParse which should be defined
-            Papa.parse(GOOGLE_SHEET_CSV_URL, {
-                download: true, // Tell PapaParse to fetch the URL
+            Papa.parse(GOOGLE_SHEET_URL_FROM_PUBLISH_TO_WEB, {
+                download: true,
                 header: true,
                 skipEmptyLines: true,
-                complete: function(results) {
-                    // Trim headers to avoid issues with hidden whitespace
-                    const trimmedData = results.data.map(row => {
-                        const newRow = {};
-                        for (const key in row) {
-                            newRow[key.trim()] = row[key].trim();
-                        }
-                        return newRow;
-                    });
-                    
-                    // IMPORTANT: The key used here ('Roll Number') must EXACTLY match the header in your CSV file.
-                    const studentData = trimmedData.find(row => row['Roll Number'].toUpperCase() === rollNumber);
+                complete: (results) => {
+                    // --- Step 3: Process Parsed Data ---
+                    if (!results.data || results.data.length === 0) {
+                        showError('<strong>Data Error:</strong> The Google Sheet appears to be empty or could not be read. Check if it is published correctly.');
+                        console.error('PapaParse result is empty:', results.errors);
+                        resetUIState();
+                        return;
+                    }
+
+                    const studentData = results.data.find(row => 
+                        row['Roll Number'] && row['Roll Number'].trim().toUpperCase() === rollNumber
+                    );
                     
                     if (studentData) {
                         displayAdmitCard(studentData);
                     } else {
-                        showError(`No record found for Roll Number: ${rollNumber}. Please check the number and try again.`);
+                        showError(`<strong>No Record Found:</strong> Could not find a student with Roll Number: ${rollNumber}.<br><ul class="list-disc list-inside mt-2"><li>Check if the Roll Number is correct.</li><li>Confirm the header in your sheet is exactly 'Roll Number'.</li></ul>`);
                     }
                     resetUIState();
                 },
-                error: function(error) {
-                    console.error('PapaParse Error:', error);
-                    showError('Failed to load or parse the data sheet. Please check the Google Sheet URL and ensure it is public.');
+                error: (error) => {
+                    console.error('PapaParse Loading Error:', error);
+                    showError('<strong>Network Error:</strong> Could not download the data sheet. Please check the Google Sheet URL and your internet connection. Make sure the sheet is published to the web.');
                     resetUIState();
                 }
             });
-
         } catch (error) {
-            console.error('Error:', error);
-            showError('An unexpected error occurred. Please check the console for details.');
+            console.error('Script Error:', error);
+            showError('<strong>Script Error:</strong> An unexpected error occurred. Please check the browser console (F12) for details.');
             resetUIState();
         }
     }
 
-    // --- HELPER FUNCTIONS ---
-
     function displayAdmitCard(data) {
-        // IMPORTANT: The keys used here ('Student Name', etc.) must EXACTLY match your CSV headers.
-        studentRollNoEl.textContent = data['Roll Number'] || 'N/A';
-        studentNameEl.textContent = data['Student Name'] || 'N/A';
-        fatherNameEl.textContent = data['Father Name'] || 'N/A';
-        courseNameEl.textContent = data['Course'] || 'N/A';
-        examCenterEl.textContent = data['Exam Center'] || 'N/A';
-        studentPhotoEl.src = data['Photo URL'] || 'https://placehold.co/120x150/E2E8F0/4A5568?text=Photo';
+        // Helper to safely get and trim data from the row object
+        const get = (key) => (data[key] || 'N/A').trim();
+
+        studentRollNoEl.textContent = get('Roll Number');
+        studentNameEl.textContent = get('Student Name');
+        fatherNameEl.textContent = get('Father Name');
+        courseNameEl.textContent = get('Course');
+        examCenterEl.textContent = get('Exam Center');
+        studentPhotoEl.src = get('Photo URL') || 'https://placehold.co/120x150/E2E8F0/4A5568?text=Photo';
         
-        // Populate exam schedule
-        const examDates = data['Exam Dates']; // e.g., "Physics:2025-06-10;Chemistry:2025-06-12;Maths:2025-06-15"
-        examScheduleEl.innerHTML = ''; // Clear previous schedule
-        if (examDates) {
+        // Populate exam schedule safely
+        const examDatesRaw = get('Exam Dates');
+        examScheduleEl.innerHTML = '';
+        if (examDatesRaw && examDatesRaw !== 'N/A') {
             const scheduleTable = document.createElement('table');
             scheduleTable.className = 'w-full text-left border-collapse';
             scheduleTable.innerHTML = `
@@ -252,19 +266,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         <th class="p-2 border-b-2 border-gray-200 bg-gray-50 font-semibold">Date</th>
                     </tr>
                 </thead>
-                <tbody></tbody>
-            `;
+                <tbody></tbody>`;
             const tbody = scheduleTable.querySelector('tbody');
-            const subjects = examDates.split(';');
-            subjects.forEach(subjectInfo => {
+            examDatesRaw.split(';').forEach(subjectInfo => {
+                if (!subjectInfo.includes(':')) return; // Skip malformed entries
                 const [subject, date] = subjectInfo.split(':');
                 if(subject && date) {
                     const row = tbody.insertRow();
                     row.className = 'hover:bg-gray-50';
-                    row.innerHTML = `
-                        <td class="p-2 border-b border-gray-200">${subject.trim()}</td>
-                        <td class="p-2 border-b border-gray-200">${date.trim()}</td>
-                    `;
+                    row.innerHTML = `<td class="p-2 border-b border-gray-200">${subject.trim()}</td><td class="p-2 border-b border-gray-200">${date.trim()}</td>`;
                 }
             });
             examScheduleEl.appendChild(scheduleTable);
@@ -276,7 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showError(message) {
-        errorMessageDiv.textContent = message;
+        errorMessageDiv.innerHTML = message; // Use innerHTML to render bold tags
         errorMessageDiv.classList.remove('hidden');
     }
     
