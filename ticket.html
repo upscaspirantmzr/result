@@ -1,208 +1,171 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ticket Generator</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Custom font for better design, Inter is default for Tailwind but explicitly loaded */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8; /* Light blue-grey background */
-        }
-        /* Custom styling for focus states */
-        input:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5); /* Blue glow */
-            border-color: #4299e1; /* Blue border */
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ticket Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f0f4f8;
+    }
+    input:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
+      border-color: #4299e1;
+    }
+  </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
-    <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-gray-200">
-        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Generate Your Ticket</h1>
-
-        <div class="mb-4">
-            <label for="transactionId" class="block text-gray-700 text-sm font-medium mb-2">Transaction ID:</label>
-            <input type="text" id="transactionId" placeholder="Enter your transaction ID"
-                   class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:ring-2 focus:ring-blue-400 focus:border-transparent transition duration-200 ease-in-out">
-        </div>
-
-        <button id="generatePdfBtn"
-                class="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75">
-            Generate Ticket PDF
-        </button>
-
-        <div id="message" class="mt-4 text-center text-sm font-medium"></div>
+  <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-gray-200">
+    <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Generate Your Ticket</h1>
+    <div class="mb-4">
+      <label for="transactionId" class="block text-gray-700 text-sm font-medium mb-2">Transaction ID:</label>
+      <input
+        type="text"
+        id="transactionId"
+        placeholder="Enter your transaction ID"
+        class="shadow-sm border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:ring-2 focus:ring-blue-400 focus:border-transparent transition duration-200 ease-in-out"
+      />
     </div>
+    <button
+      id="generatePdfBtn"
+      class="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75"
+    >
+      Generate Ticket PDF
+    </button>
+    <div id="message" class="mt-4 text-center text-sm font-medium"></div>
+  </div>
 
-    <!-- jsPDF library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- qrcode.js library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode.js/1.0.0/qrcode.min.js"></script>
+  <!-- Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode.js/1.0.0/qrcode.min.js"></script>
 
-    <script>
-        // Ensure jsPDF is globally available (umd.min.js usually does this)
-        const { jsPDF } = window.jspdf;
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const { jsPDF } = window.jspdf;
+      const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwxMysyCNrVDWl4jlY_Td5TpQV7IIJU1cCRjCNIxGsN6NcET8fNNZFosLJOeQYDW-TC/exec';
+      const generatePdfBtn = document.getElementById('generatePdfBtn');
+      const transactionIdInput = document.getElementById('transactionId');
+      const messageDiv = document.getElementById('message');
 
-        // --- IMPORTANT: This URL has been updated with the new one you provided ---
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwxMysyCNrVDWl4jlY_Td5TpQV7IIJU1cCRjCNIxGsN6NcET8fNNZFosLJOeQYDW-TC/exec';
+      generatePdfBtn.addEventListener('click', async () => {
+        const transactionId = transactionIdInput.value.trim().toUpperCase();
+        if (!transactionId) {
+          return displayMessage('Please enter a transaction ID.', 'text-red-500');
+        }
 
-        const generatePdfBtn = document.getElementById('generatePdfBtn');
-        const transactionIdInput = document.getElementById('transactionId');
-        const messageDiv = document.getElementById('message');
+        displayMessage('Fetching transaction data...', 'text-blue-600');
+        generatePdfBtn.disabled = true;
+        generatePdfBtn.classList.add('opacity-50', 'cursor-not-allowed');
 
-        generatePdfBtn.addEventListener('click', async () => {
-            const transactionId = transactionIdInput.value.trim().toUpperCase(); // Normalize input
-            if (!transactionId) {
-                displayMessage('Please enter a transaction ID.', 'text-red-500');
-                return;
-            }
+        try {
+          const response = await fetch(`${APPS_SCRIPT_URL}?transactionId=${encodeURIComponent(transactionId)}`);
+          const result = await response.json();
 
-            displayMessage('Fetching transaction data...', 'text-blue-600');
-            generatePdfBtn.disabled = true; // Disable button to prevent multiple clicks
-            generatePdfBtn.classList.add('opacity-50', 'cursor-not-allowed'); // Add disabled styling
+          if (response.ok && result.success && result.data) {
+            displayMessage('Generating PDF...', 'text-blue-600');
+            await generateTicketPdf(result.data);
+            displayMessage('PDF generated successfully!', 'text-green-600');
+          } else {
+            const err = result.message || `Error: ${response.statusText || 'Unknown error'}`;
+            displayMessage(`Error fetching data: ${err}`, 'text-red-500');
+          }
+        } catch (err) {
+          console.error(err);
+          displayMessage('Network error. Please check your connection.', 'text-red-500');
+        } finally {
+          generatePdfBtn.disabled = false;
+          generatePdfBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+      });
 
-            try {
-                // Fetch data from Google Apps Script
-                const response = await fetch(`${APPS_SCRIPT_URL}?transactionId=${encodeURIComponent(transactionId)}`);
-                const result = await response.json();
+      function displayMessage(msg, colorClass) {
+        messageDiv.textContent = msg;
+        messageDiv.className = `mt-4 text-center text-sm font-medium ${colorClass}`;
+      }
 
-                if (response.ok && result.success && result.data) { // Check response.ok for HTTP status success
-                    displayMessage('Generating PDF...', 'text-blue-600');
-                    await generateTicketPdf(result.data); // Use await here
-                    displayMessage('PDF generated successfully!', 'text-green-600');
-                } else {
-                    // Handle cases where response.ok is false or result.success is false
-                    const errorMessage = result.message || `Error: ${response.statusText || 'Unknown error'}`;
-                    displayMessage(`Error fetching data: ${errorMessage}`, 'text-red-500');
-                }
-            } catch (error) {
-                console.error('Network or parsing error:', error);
-                displayMessage('An error occurred. Please check your internet connection and try again.', 'text-red-500');
-            } finally {
-                generatePdfBtn.disabled = false; // Re-enable button
-                generatePdfBtn.classList.remove('opacity-50', 'cursor-not-allowed'); // Remove disabled styling
-            }
+      async function generateTicketPdf(transaction) {
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a5' });
+        const margin = 15;
+        let yPos = margin;
+        const lh = 7;
+        const qrSize = 40;
+
+        // Header
+        doc.setFillColor(66, 133, 244);
+        doc.rect(0, 0, doc.internal.pageSize.width, 30, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(24);
+        doc.setTextColor(255);
+        doc.text("Event Ticket", doc.internal.pageSize.width / 2, 20, { align: 'center' });
+
+        yPos = 40;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(18);
+        doc.setTextColor(55, 65, 81);
+        doc.text(transaction.event || 'Unknown Event', margin, yPos);
+        yPos += lh * 1.5;
+
+        // Separator
+        doc.setDrawColor(200);
+        doc.setLineWidth(0.2);
+        doc.line(margin, yPos, doc.internal.pageSize.width - margin, yPos);
+        yPos += lh;
+
+        // Details
+        doc.setFontSize(10);
+        const addDetail = (label, val) => {
+          doc.setFont('helvetica', 'bold');
+          doc.text(`${label}:`, margin, yPos);
+          doc.setFont('helvetica', 'normal');
+          doc.text(String(val || 'N/A'), margin + 30, yPos);
+          yPos += lh;
+        };
+
+        addDetail('Transaction ID', transaction.id);
+        addDetail('Attendee Name', transaction.name);
+        addDetail('Date', transaction.date);
+        addDetail('Time', transaction.time);
+        addDetail('Location', transaction.location);
+        addDetail('Seat/Type', transaction.seat);
+        addDetail('Price', transaction.price);
+
+        yPos += lh * 2;
+
+        // QR code
+        const qrCanvas = document.createElement('canvas');
+        qrCanvas.width = qrCanvas.height = 200;
+        new QRCode(qrCanvas, {
+          text: `Transaction ID: ${transaction.id}\nAttendee: ${transaction.name}\nEvent: ${transaction.event}`,
+          width: 200,
+          height: 200,
+          colorDark: "#000",
+          colorLight: "#fff",
+          correctLevel: QRCode.CorrectLevel.H
         });
+        await new Promise(r => setTimeout(r, 100));
+        const qrImg = qrCanvas.toDataURL('image/png');
 
-        /**
-         * Displays a message in the message div.
-         * @param {string} msg The message to display.
-         * @param {string} colorClass Tailwind CSS class for text color (e.g., 'text-red-500').
-         */
-        function displayMessage(msg, colorClass) {
-            messageDiv.textContent = msg;
-            messageDiv.className = `mt-4 text-center text-sm font-medium ${colorClass}`;
-        }
+        const qrX = (doc.internal.pageSize.width - qrSize) / 2;
+        doc.addImage(qrImg, 'PNG', qrX, yPos, qrSize, qrSize);
+        doc.setFontSize(8);
+        doc.setTextColor(100, 116, 139);
+        doc.text("Scan for details", doc.internal.pageSize.width / 2, yPos + qrSize + 5, { align: 'center' });
 
-        /**
-         * Generates the PDF ticket using jsPDF.
-         * @param {object} transaction The transaction data.
-         */
-        async function generateTicketPdf(transaction) {
-            const doc = new jsPDF({
-                orientation: 'portrait',
-                unit: 'mm',
-                format: 'a5' // A5 size is good for tickets
-            });
+        // Footer
+        yPos = doc.internal.pageSize.height - margin - lh * 2;
+        doc.setFontSize(9);
+        doc.setTextColor(100, 116, 139);
+        doc.text("Please present this ticket at the entrance.", margin, yPos);
+        doc.text("Terms and conditions apply. Non-refundable.", margin, yPos + lh);
 
-            const margin = 15;
-            let yPos = margin;
-            const lineHeight = 7;
-            const textLeft = margin;
-            const qrSize = 40; // Size of the QR code
-            // const logoPlaceholderSize = 30; // Not used currently
-
-            // Header Section
-            doc.setFillColor(66, 133, 244); // Google Blue
-            doc.rect(0, 0, doc.internal.pageSize.width, 30, 'F'); // Blue banner
-            doc.setFont('Inter', 'bold');
-            doc.setFontSize(24);
-            doc.setTextColor(255, 255, 255); // White text
-            doc.text("Event Ticket", doc.internal.pageSize.width / 2, 20, { align: 'center' });
-
-            yPos = 40; // Start content below the header
-
-            doc.setTextColor(55, 65, 81); // Dark grey text
-            doc.setFontSize(18);
-            // Ensure transaction.event exists before using it
-            doc.text(transaction.event || 'Unknown Event', textLeft, yPos);
-            yPos += lineHeight * 1.5;
-
-            // Separator line
-            doc.setDrawColor(200, 200, 200);
-            doc.setLineWidth(0.2);
-            doc.line(margin, yPos, doc.internal.pageSize.width - margin, yPos);
-            yPos += lineHeight;
-
-            // Details Section
-            doc.setFont('Inter', 'normal');
-            doc.setFontSize(10);
-            const addDetail = (label, value) => {
-                doc.setFont('Inter', 'bold');
-                doc.text(`${label}:`, textLeft, yPos);
-                doc.setFont('Inter', 'normal');
-                // Ensure value is not null/undefined for text()
-                doc.text(String(value || 'N/A'), textLeft + 30, yPos); // Align value
-                yPos += lineHeight;
-            };
-
-            // Use data directly from the fetched transaction object
-            addDetail('Transaction ID', transaction.id);
-            addDetail('Attendee Name', transaction.name);
-            addDetail('Date', transaction.date);
-            addDetail('Time', transaction.time);
-            addDetail('Location', transaction.location);
-            addDetail('Seat/Type', transaction.seat);
-            addDetail('Price', transaction.price);
-
-            yPos += lineHeight * 2; // Space before QR code and logo
-
-            // QR Code Generation (using qrcode.js to draw on a canvas, then capture as image)
-            const qrCodeData = `Transaction ID: ${transaction.id}\nAttendee: ${transaction.name}\nEvent: ${transaction.event}`;
-            const qrCanvas = document.createElement('canvas');
-            qrCanvas.width = 200; // Large enough for good quality
-            qrCanvas.height = 200;
-            // qrcode.js can draw directly to a canvas element, no need to append to DOM if just getting imageData
-            new QRCode(qrCanvas, {
-                text: qrCodeData,
-                width: 200,
-                height: 200,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
-            });
-
-            // Wait for QR code to be drawn. A small timeout is a simple way,
-            // but for production, consider observing the canvas's state or a dedicated callback if qrcode.js offered one.
-            await new Promise(resolve => setTimeout(resolve, 100)); // Reduced timeout, 500ms might be overkill
-
-            const qrCodeImgData = qrCanvas.toDataURL('image/png');
-            // No need to remove from DOM if it was never appended.
-
-            // Calculate center position for QR code
-            const qrCodeX = (doc.internal.pageSize.width / 2) - (qrSize / 2);
-            doc.addImage(qrCodeImgData, 'PNG', qrCodeX, yPos, qrSize, qrSize);
-            doc.setFont('Inter', 'normal');
-            doc.setFontSize(8);
-            doc.setTextColor(100, 116, 139); // Slate grey
-            doc.text("Scan for details", doc.internal.pageSize.width / 2, yPos + qrSize + 5, { align: 'center' });
-
-
-            // Footer/Disclaimer
-            yPos = doc.internal.pageSize.height - margin - lineHeight * 2; // Position from bottom
-            doc.setFontSize(9);
-            doc.setTextColor(100, 116, 139); // Slate grey
-            doc.text("Please present this ticket at the entrance.", textLeft, yPos);
-            doc.text("Terms and conditions apply. Non-refundable.", textLeft, yPos + lineHeight);
-
-            // Save the PDF
-            doc.save(`Ticket_${transaction.id || 'unknown'}.pdf`);
-        }
-    </script>
+        // Save
+        doc.save(`Ticket_${transaction.id || 'unknown'}.pdf`);
+      }
+    });
+  </script>
 </body>
 </html>
