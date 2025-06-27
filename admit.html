@@ -140,18 +140,13 @@
     </div>
 
 <script>
-    // --- IMPORTANT SETUP ---
-    // 1. Create a Google Sheet with your student data.
-    // 2. The first row MUST be the headers. Example headers:
-    //    Roll Number, Student Name, Father Name, Course, Exam Center, Photo URL, Exam Dates
-    //    (The Photo URL should be a public link to an image of the student)
-    //    For "Exam Dates", you can format it like: "Subject1:YYYY-MM-DD;Subject2:YYYY-MM-DD"
-    // 3. In Google Sheets, go to File -> Share -> Publish to web.
-    // 4. In the dialog, select "Entire Document" and "Comma-separated values (.csv)".
-    // 5. Click "Publish" and copy the generated URL.
-    // 6. Paste the URL below, replacing the placeholder.
+// Wait for the DOM to be fully loaded before running the script
+document.addEventListener('DOMContentLoaded', () => {
 
-    const GOOGLE_SHEET_CSV_URL = 'YOUR_PUBLISHED_GOOGLE_SHEET_CSV_URL_HERE';
+    // --- CONFIGURATION ---
+    // NOTE: The URL has been corrected to the proper export format for fetching CSV data.
+    // Ensure your sheet is public ("Anyone with the link can view").
+    const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1qvKICCt-ugoFjLADZwyk4TRvMpnPZ4RgJBuQ5umhm34/export?format=csv&gid=0';
 
     // --- DOM ELEMENT SELECTION ---
     const form = document.getElementById('admitCardForm');
@@ -178,7 +173,7 @@
 
     // --- MAIN FUNCTION to fetch and process data ---
     async function fetchAdmitCardData() {
-        const rollNumber = rollNumberInput.value.trim();
+        const rollNumber = rollNumberInput.value.trim().toUpperCase(); // Standardize roll number to uppercase
 
         // UI Reset
         admitCardContainer.classList.add('hidden');
@@ -193,26 +188,24 @@
             return;
         }
 
-        if (GOOGLE_SHEET_CSV_URL === 'YOUR_PUBLISHED_GOOGLE_SHEET_CSV_URL_HERE') {
-            showError('Configuration error: The Google Sheet URL is not set up.');
-            resetUIState();
-            return;
-        }
-
         try {
-            const response = await fetch(GOOGLE_SHEET_CSV_URL);
-            if (!response.ok) {
-                throw new Error('Network response was not ok. Could not fetch data sheet.');
-            }
-            const csvText = await response.text();
-            
-            // Parse the CSV data
-            Papa.parse(csvText, {
+            // Now we call PapaParse which should be defined
+            Papa.parse(GOOGLE_SHEET_CSV_URL, {
+                download: true, // Tell PapaParse to fetch the URL
                 header: true,
                 skipEmptyLines: true,
                 complete: function(results) {
+                    // Trim headers to avoid issues with hidden whitespace
+                    const trimmedData = results.data.map(row => {
+                        const newRow = {};
+                        for (const key in row) {
+                            newRow[key.trim()] = row[key].trim();
+                        }
+                        return newRow;
+                    });
+                    
                     // IMPORTANT: The key used here ('Roll Number') must EXACTLY match the header in your CSV file.
-                    const studentData = results.data.find(row => row['Roll Number'] === rollNumber);
+                    const studentData = trimmedData.find(row => row['Roll Number'].toUpperCase() === rollNumber);
                     
                     if (studentData) {
                         displayAdmitCard(studentData);
@@ -222,14 +215,15 @@
                     resetUIState();
                 },
                 error: function(error) {
-                    showError('Failed to parse the data sheet. Please check the CSV format.');
+                    console.error('PapaParse Error:', error);
+                    showError('Failed to load or parse the data sheet. Please check the Google Sheet URL and ensure it is public.');
                     resetUIState();
                 }
             });
 
         } catch (error) {
-            console.error('Fetch Error:', error);
-            showError('An error occurred while fetching the data. Please check your internet connection or the sheet URL.');
+            console.error('Error:', error);
+            showError('An unexpected error occurred. Please check the console for details.');
             resetUIState();
         }
     }
@@ -237,7 +231,7 @@
     // --- HELPER FUNCTIONS ---
 
     function displayAdmitCard(data) {
-        // IMPORTANT: The keys used here ('Student Name', 'Photo URL', etc.) must EXACTLY match your CSV headers.
+        // IMPORTANT: The keys used here ('Student Name', etc.) must EXACTLY match your CSV headers.
         studentRollNoEl.textContent = data['Roll Number'] || 'N/A';
         studentNameEl.textContent = data['Student Name'] || 'N/A';
         fatherNameEl.textContent = data['Father Name'] || 'N/A';
@@ -254,8 +248,8 @@
             scheduleTable.innerHTML = `
                 <thead>
                     <tr>
-                        <th class="p-2 border-b-2 border-gray-200 bg-gray-50">Subject</th>
-                        <th class="p-2 border-b-2 border-gray-200 bg-gray-50">Date</th>
+                        <th class="p-2 border-b-2 border-gray-200 bg-gray-50 font-semibold">Subject</th>
+                        <th class="p-2 border-b-2 border-gray-200 bg-gray-50 font-semibold">Date</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -266,6 +260,7 @@
                 const [subject, date] = subjectInfo.split(':');
                 if(subject && date) {
                     const row = tbody.insertRow();
+                    row.className = 'hover:bg-gray-50';
                     row.innerHTML = `
                         <td class="p-2 border-b border-gray-200">${subject.trim()}</td>
                         <td class="p-2 border-b border-gray-200">${date.trim()}</td>
@@ -289,7 +284,7 @@
         loadingDiv.classList.add('hidden');
         submitButton.disabled = false;
     }
-
+});
 </script>
 
 </body>
