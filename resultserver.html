@@ -6,11 +6,8 @@
     <title>Sparrows Academy Result Portal</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://unpkg.com/jspdf-svg@latest/dist/jspdf.plugin.svg.min.js"></script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,26 +17,15 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8; /* A lighter, cleaner background */
+            background-color: #f0f4f8;
             background-image: linear-gradient(to top, #dfe9f3 0%, white 100%);
         }
         .dark body {
-            background-color: #0f172a; /* A darker, richer background */
+            background-color: #0f172a;
             background-image: linear-gradient(to top, #0f172a 0%, #1e293b 100%);
         }
         .transition-all {
             transition: all 0.3s ease-in-out;
-        }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .result-table th, .result-table td {
-            @apply px-4 py-3 text-left text-sm;
-        }
-        .result-table thead th {
-            @apply font-semibold bg-gray-100 dark:bg-gray-700/50;
-        }
-        .result-table tbody tr:nth-child(even) {
-            @apply bg-gray-50 dark:bg-gray-800/50;
         }
         .main-card {
             box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
@@ -97,66 +83,8 @@
                 </div>
             </div>
 
-            <!-- News and Announcements Section -->
-            <div id="announcementsSection" class="p-6 md:p-8 border-t border-gray-200 dark:border-gray-700/50">
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">News & Announcements</h3>
-                <div class="bg-blue-50 dark:bg-blue-900/50 p-4 rounded-lg space-y-3 max-h-48 overflow-y-auto no-scrollbar">
-                    <div class="flex items-start">
-                        <svg class="flex-shrink-0 w-5 h-5 text-blue-600 dark:text-blue-300 mt-1 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
-                        <div>
-                            <p class="text-sm font-semibold text-blue-800 dark:text-blue-200">Exam Results to be Declared Soon!</p>
-                            <p class="text-xs text-blue-700 dark:text-blue-100">Anticipated release on [Date], stay tuned!</p>
-                        </div>
-                    </div>
-                    <div class="flex items-start">
-                        <svg class="flex-shrink-0 w-5 h-5 text-blue-600 dark:text-blue-300 mt-1 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
-                        <div>
-                            <p class="text-sm font-semibold text-blue-800 dark:text-blue-200">Parent-Teacher Meeting on 15th August</p>
-                            <p class="text-xs text-blue-700 dark:text-blue-100">All parents are requested to attend.</p>
-                        </div>
-                    </div>
-                    <div class="flex items-start">
-                        <svg class="flex-shrink-0 w-5 h-5 text-blue-600 dark:text-blue-300 mt-1 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
-                        <div>
-                            <p class="text-sm font-semibold text-blue-800 dark:text-blue-200">Summer Vacations from 1st June</p>
-                            <p class="text-xs text-blue-700 dark:text-blue-100">Enjoy your holidays!</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <div id="resultContainer" class="p-6 md:p-8 border-t border-gray-200 dark:border-gray-700/50">
                    <!-- Disclaimer will be shown here initially -->
-            </div>
-            <div class="p-6 md:p-8 border-t border-gray-200 dark:border-gray-700/50 flex justify-center">
-                <button onclick="showAnalyticsPage()" class="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-700 dark:focus:ring-offset-gray-800">
-                    Admin Analytics
-                </button>
-            </div>
-        </div>
-        <footer class="text-center mt-8 text-sm text-gray-500 dark:text-gray-400">
-            <p>&copy; Developed & Maintained by E-Cell, Sparrows Academy.</p>
-        </footer>
-    </div>
-
-    <!-- Admin Analytics View (initially hidden) -->
-    <div id="analytics-view" class="hidden w-full max-w-3xl mx-auto min-h-screen flex flex-col justify-center items-center p-4">
-        <div class="w-full bg-white dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl main-card border border-gray-200 dark:border-gray-700/50 overflow-hidden">
-            <div class="p-8 bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-700 dark:to-pink-800 text-white text-center animated-gradient">
-                <h1 class="text-3xl font-extrabold tracking-tight">Admin Analytics Dashboard</h1>
-                <p class="text-purple-200 mt-2">Overall school performance insights</p>
-            </div>
-            <div id="analyticsContent" class="p-6 md:p-8 space-y-4">
-                <!-- Analytics data will be rendered here -->
-                <div class="flex flex-col items-center justify-center text-center p-8">
-                    <svg class="animate-spin h-8 w-8 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    <p class="mt-4 text-lg font-semibold text-gray-700 dark:text-gray-300">Loading Analytics Data...</p>
-                </div>
-            </div>
-            <div class="p-6 md:p-8 border-t border-gray-200 dark:border-gray-700/50 flex justify-center">
-                <button onclick="switchView('main-portal-view')" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800">
-                    Back to Result Portal
-                </button>
             </div>
         </div>
         <footer class="text-center mt-8 text-sm text-gray-500 dark:text-gray-400">
@@ -170,23 +98,12 @@
         // Base URL for Opensheet, without a specific sheet name at the end
         const baseURL = "https://opensheet.elk.sh/1Sfrx9iH5b1-CipMJIQZJ8z61P1PUlgDPrSypfwY6aew/"; 
         let userIPAddress = "Not available";
-        const ADMIN_PASSWORD = "admin"; // Client-side placeholder password. Not secure!
-
-        // Array of classes to fetch data for analytics
-        const CLASSES = ["Class 7", "Class 8", "Class 9"];
 
         document.addEventListener('DOMContentLoaded', () => {
             initializeTheme();
             fetchUserIP(); 
             showDisclaimer(); 
         });
-
-        // Function to switch between different views (main portal, analytics)
-        function switchView(viewId) {
-            document.getElementById('main-portal-view').classList.add('hidden');
-            document.getElementById('analytics-view').classList.add('hidden');
-            document.getElementById(viewId).classList.remove('hidden');
-        }
 
         // Displays the initial disclaimer message in the result container
         function showDisclaimer() {
@@ -252,7 +169,7 @@
         // Fetches and displays the result for the entered roll number and selected class
         async function fetchResult() {
             const roll = document.getElementById("roll").value.trim();
-            const selectedClass = document.getElementById("class-select").value; // Get selected class
+            const selectedClass = document.getElementById("class-select").value;
 
             if (!selectedClass) {
                 displayMessage('⚠️', 'Input Required', 'Please select a Class.', 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200');
@@ -264,10 +181,9 @@
                 return;
             }
 
-            displayLoader(); // Show loading indicator
+            displayLoader();
 
             try {
-                // Construct the dynamic URL for the selected class (sheet)
                 const dynamicSheetURL = baseURL + selectedClass;
                 const res = await fetch(dynamicSheetURL);
                 if (!res.ok) {
@@ -275,13 +191,11 @@
                 }
                 const classSpecificData = await res.json();
 
-                // Now filter within the data for the selected class by roll number
                 const results = classSpecificData.filter(row => row["Roll Number"]?.trim().toLowerCase() === roll.toLowerCase());
 
                 if (results.length > 0) {
-                    const allMarksDeclared = results.every(subject => {
+                     const allMarksDeclared = results.every(subject => {
                         const hasTheoryMarks = subject.Marks && subject.Marks.trim() !== '' && !isNaN(parseInt(subject.Marks.trim(), 10));
-                        // Assuming 'Marks' is the primary indicator of declaration
                         return hasTheoryMarks;
                     });
 
@@ -311,13 +225,12 @@
             const tableRows = results.map(subject => {
                 const theoryMarks = parseInt(subject["Marks"]?.trim(), 10) || null;
                 const practicalMarks = parseInt(subject["Practical Marks"]?.trim(), 10) || null;
-                // Only include rows where theory marks are available for calculation and display
                 if (theoryMarks === null) return '';
 
                 const subjectTotal = (theoryMarks || 0) + (practicalMarks || 0);
                 const { grade, remark, color } = getGradeAndRemark(subjectTotal);
                 totalMarks += subjectTotal;
-                maxMarks += 100; // Assuming each subject is out of 100
+                maxMarks += 100;
 
                 return `
                     <tr class="border-b dark:border-gray-700/50">
@@ -346,13 +259,13 @@
                         <p class="text-sm text-gray-600 dark:text-gray-300">Roll Number</p>
                         <p class="font-mono bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded">${studentInfo["Roll Number"]}</p>
                     </div>
-                    <div> <!-- Class display on webpage -->
+                    <div>
                         <p class="text-sm text-gray-600 dark:text-gray-300">Class</p>
                         <p class="font-bold text-lg text-gray-900 dark:text-white">${studentInfo.Class || 'N/A'}</p>
                     </div>
                 </div>
                 <div class="overflow-x-auto rounded-lg border dark:border-gray-700/50">
-                    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 result-table">
+                    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                         <thead class="text-xs text-gray-700 uppercase dark:text-gray-400">
                             <tr>
                                 <th scope="col" class="py-3 px-4">Subject</th>
@@ -397,7 +310,6 @@
             return { grade: 'F', remark: 'Fail', color: { bg: 'bg-red-100 dark:bg-red-800/30', text: 'text-red-800 dark:text-red-200' } };
         }
 
-        // Loads an image from a URL and converts it to Base64
         async function loadImageAsBase64(url) {
             return new Promise((resolve, reject) => {
                 const xhr = new XMLHttpRequest();
@@ -416,9 +328,7 @@
             });
         }
         
-        // Downloads the full marksheet as a PDF
         async function downloadFullMarksheetPDF() {
-            // Check if there is data to download
             if (currentStudentResults.length === 0) { displayMessage('!', 'Error', 'No data to download!', 'bg-red-100 text-red-800'); return; }
             try {
                 const studentInfo = currentStudentResults[0];
@@ -428,27 +338,24 @@
                 let totalActualMarks = 0;
                 let totalPossibleMarks = 0;
 
-                // Prepare table body data for jsPDF autoTable
                 const tableBody = currentStudentResults.map(res => {
                     const theoryMarks = parseInt(res.Marks?.trim()) || null;
                     const practicalMarks = parseInt(res["Practical Marks"]?.trim(), 10) || null;
-                    if (theoryMarks === null) return null; // Skip rows without theory marks
+                    if (theoryMarks === null) return null;
                     const subjectTotal = (theoryMarks || 0) + (practicalMarks || 0);
                     const { grade, remark } = getGradeAndRemark(subjectTotal);
                     totalActualMarks += subjectTotal;
-                    totalPossibleMarks += 100; // Each subject is out of 100
+                    totalPossibleMarks += 100;
                     
-                    // Removed studentInfo.Class from the row array for the PDF table
                     const row = [res.Subject, theoryMarks];
-                    if (hasPracticalData) row.push(practicalMarks ?? "N/A"); // Add practical column if present
+                    if (hasPracticalData) row.push(practicalMarks ?? "N/A");
                     row.push(subjectTotal, grade, remark);
                     return row;
-                }).filter(Boolean); // Filter out nulls
+                }).filter(Boolean);
 
                 const percentage = totalPossibleMarks > 0 ? ((totalActualMarks / totalPossibleMarks) * 100).toFixed(2) : 0;
                 const overallResult = percentage >= 50 ? 'PASS' : 'FAIL';
                 
-                // Load images for the PDF header and footer
                 const [logoDataUrl, signatureDataUrl] = await Promise.all([
                     loadImageAsBase64('https://upscaspirantmzr.github.io/result/Logo.png'),
                     loadImageAsBase64('https://upscaspirantmzr.github.io/result/Sign.jpg')
@@ -460,64 +367,49 @@
                 const margin = 10;
                 let currentY = margin;
 
-                // Add a border around the page
-                doc.setDrawColor(0, 32, 74); // Dark blue for the border
+                doc.setDrawColor(0, 32, 74);
                 doc.setLineWidth(0.5);
                 doc.rect(margin / 2, margin / 2, pageWidth - margin, pageHeight - margin);
                 
-                // Add university logo and title
                 currentY += 10;
                 doc.addImage(logoDataUrl, 'PNG', margin + 5, currentY, 25, 25);
-                doc.setFont("helvetica", "bold").setFontSize(22).setTextColor(0, 32, 74).text("Mzr University", margin + 35, currentY + 8);
+                doc.setFont("helvetica", "bold").setFontSize(22).setTextColor(0, 32, 74).text("Sparrows Academy", margin + 35, currentY + 8);
                 doc.setFont("helvetica", "normal").setFontSize(12).setTextColor(100).text("Provisional Marksheet (Internal Assessment)", margin + 35, currentY + 16);
                 
-                // Add QR code
                 const qrString = `Roll: ${studentInfo["Roll Number"]}, Name: ${studentInfo.Name}, Class: ${studentInfo.Class || 'N/A'}, IP: ${userIPAddress}`;
                 const qr = qrcode(0, 'L'); qr.addData(qrString); qr.make();
                 doc.addImage(qr.createDataURL(4), 'PNG', pageWidth - margin - 35, currentY, 30, 30);
                 
-                currentY += 40; // Move Y position after header
+                currentY += 40;
 
-                // --- Manual Student Info (without dashed underline) ---
                 const infoLeftX = margin + 5;
-                const infoRightX = infoLeftX + 35; // X position for the values
+                const infoRightX = infoLeftX + 35;
                 doc.setFontSize(11);
 
-                // Name
                 doc.setFont("helvetica", "bold").text("Full Name:", infoLeftX, currentY);
                 doc.setFont("helvetica", "normal").text(studentInfo.Name, infoRightX, currentY);
-
                 currentY += 8;
-
-                // Roll Number
                 doc.setFont("helvetica", "bold").text("Roll Number:", infoLeftX, currentY);
                 doc.setFont("helvetica", "normal").text(studentInfo["Roll Number"], infoRightX, currentY);
-                
-                currentY += 8; // Move Y position down for Class
-
-                // Class
+                currentY += 8;
                 doc.setFont("helvetica", "bold").text("Class:", infoLeftX, currentY);
                 doc.setFont("helvetica", "normal").text(studentInfo.Class || 'N/A', infoRightX, currentY);
 
-                currentY += 10; // Space after info section
+                currentY += 10;
 
-                // Add the marks table
-                // Removed Class column from the PDF table head
                 const tableHead = [['Subject', 'Theory']];
                 if (hasPracticalData) tableHead[0].push('Practical');
                 tableHead[0].push('Total', 'Grade', 'Remarks');
 
                 doc.autoTable({
                     startY: currentY, head: tableHead, body: tableBody, theme: 'grid',
-                    headStyles: { fillColor: [22, 110, 160], textColor: 255 }, // Header row styling
-                    styles: { fontSize: 10, cellPadding: 3, halign: 'center' }, // General cell styling
-                    // Adjusted columnStyles for PDF now that 'Class' column (index 1) is removed
+                    headStyles: { fillColor: [22, 110, 160], textColor: 255 },
+                    styles: { fontSize: 10, cellPadding: 3, halign: 'center' },
                     columnStyles: { 0: { halign: 'left' }, [tableHead[0].length -1]: { halign: 'left' } },
                     margin: { left: margin, right: margin }
                 });
-                currentY = doc.autoTable.previous.finalY; // Update Y position after table
+                currentY = doc.autoTable.previous.finalY;
 
-                // Add totals summary table (right aligned)
                 const totalsTableWidth = 85;
                 doc.autoTable({
                     startY: currentY + 2, body: [
@@ -525,24 +417,21 @@
                         ['Percentage', `${percentage}%`],
                         ['Overall Result', { content: overallResult, styles: { textColor: percentage >= 50 ? [0, 128, 0] : [255, 0, 0] }}]
                     ], theme: 'grid', tableWidth: totalsTableWidth,
-                    margin: { left: pageWidth - margin - totalsTableWidth }, // Position table to the right
+                    margin: { left: pageWidth - margin - totalsTableWidth },
                     styles: { cellPadding: 3, fontSize: 11 },
                     columnStyles: { 0: { fontStyle: 'bold', halign: 'right' }, 1: { fontStyle: 'bold' } }
                 });
                 
-                // Add footer with signature, IP address, and disclaimer
                 const footerY = pageHeight - margin - 20;
                 const signatureImageHeight = 15, signatureImageWidth = 40;
                 const signatureX = pageWidth - margin - signatureImageWidth;
                 doc.addImage(signatureDataUrl, 'JPEG', signatureX, footerY - signatureImageHeight, signatureImageWidth, signatureImageHeight);
-                doc.setLineWidth(0.3).line(signatureX, footerY + 2, signatureX + signatureImageWidth, footerY + 2); // Signature line
+                doc.setLineWidth(0.3).line(signatureX, footerY + 2, signatureX + signatureImageWidth, footerY + 2);
                 doc.setFontSize(10).setTextColor(100).text("Head of Department", signatureX + signatureImageWidth / 2, footerY + 7, { align: 'center' });
 
-                // Changed: Added IP address to the generated info in the footer
                 doc.setFontSize(9).setTextColor(150).text(`Generated: ${new Date().toLocaleString('en-IN')} | IP: ${userIPAddress}`, margin, footerY);
                 doc.setFont("helvetica", "italic").text("This is a computer-generated document.", margin, footerY + 5);
                 
-                // Save the PDF
                 doc.save(`${studentInfo["Roll Number"]}_Marksheet.pdf`);
 
             } catch (error) {
@@ -582,179 +471,9 @@
         // Clears the form and shows the disclaimer again
         function clearForm() {
             document.getElementById("roll").value = "";
-            document.getElementById("class-select").value = ""; // Clear the class selection
+            document.getElementById("class-select").value = "";
             showDisclaimer();
             currentStudentResults = [];
-        }
-
-        // --- Admin Analytics Functions ---
-
-        // Shows the analytics page after a basic password check
-        async function showAnalyticsPage() {
-            const password = prompt("Please enter admin password:");
-            if (password === ADMIN_PASSWORD) {
-                switchView('analytics-view');
-                displayLoader("analyticsContent", "Generating Analytics Report...", "text-purple-600");
-                try {
-                    const allClassData = await fetchOverallData();
-                    generateAnalyticsReport(allClassData);
-                } catch (error) {
-                    console.error("Analytics Data Fetch Error:", error);
-                    displayMessage('❗', 'Analytics Error', `Failed to load analytics data: ${error.message}`, 'bg-red-100 text-red-800', "analyticsContent");
-                }
-            } else if (password !== null) { // User didn't cancel
-                displayMessage('❌', 'Access Denied', 'Incorrect password.', 'bg-red-100 text-red-800', "analyticsContent");
-                alert("Incorrect password!"); // Use a real modal in a production app
-            }
-        }
-
-        // Fetches data for all defined classes concurrently
-        async function fetchOverallData() {
-            const fetchPromises = CLASSES.map(className => 
-                fetch(baseURL + className)
-                    .then(res => {
-                        if (!res.ok) throw new Error(`HTTP error! Status: ${res.status} for ${className}`);
-                        return res.json();
-                    })
-                    .then(data => data.map(student => ({ ...student, Class: className }))) // Add class to each student object
-                    .catch(error => {
-                        console.error(`Error fetching data for ${className}:`, error);
-                        return []; // Return empty array on error for that class
-                    })
-            );
-            const allResults = await Promise.all(fetchPromises);
-            return [].concat(...allResults); // Flatten the array of arrays into a single array
-        }
-
-        // Generates and displays the analytics report
-        function generateAnalyticsReport(allStudentData) {
-            const analyticsContentDiv = document.getElementById("analyticsContent");
-            if (!allStudentData || allStudentData.length === 0) {
-                displayMessage('ℹ️', 'No Data', 'No student data available for analytics.', 'bg-yellow-100 text-yellow-800', "analyticsContent");
-                return;
-            }
-
-            let totalStudents = 0;
-            let passedStudents = 0;
-            const classWiseData = {};
-            const gradeCounts = { 'A+': 0, 'A': 0, 'B': 0, 'C': 0, 'D': 0, 'F': 0 };
-            const studentPercentages = []; // Store { name, roll, class, percentage } for top performers
-
-            allStudentData.forEach(student => {
-                const studentClass = student.Class || 'N/A';
-                if (!classWiseData[studentClass]) {
-                    classWiseData[studentClass] = { total: 0, passed: 0, totalMarks: 0, totalPossibleMarks: 0 };
-                }
-
-                totalStudents++;
-                classWiseData[studentClass].total++;
-
-                let studentTotalMarks = 0;
-                let studentMaxMarks = 0;
-
-                // Assuming 'Marks' is the primary field for calculation, and we treat each subject as 100 marks
-                // Filter only valid subjects with declared marks
-                const validSubjects = allStudentData.filter(s => 
-                    s["Roll Number"] === student["Roll Number"] && 
-                    s.Marks && s.Marks.trim() !== '' && !isNaN(parseInt(s.Marks.trim(), 10))
-                );
-
-                validSubjects.forEach(subject => {
-                    const theoryMarks = parseInt(subject.Marks?.trim(), 10) || 0;
-                    const practicalMarks = parseInt(subject["Practical Marks"]?.trim(), 10) || 0;
-                    const subjectTotal = theoryMarks + practicalMarks;
-                    studentTotalMarks += subjectTotal;
-                    studentMaxMarks += 100; // Each subject is assumed to be out of 100
-                });
-
-                const percentage = studentMaxMarks > 0 ? ((studentTotalMarks / studentMaxMarks) * 100) : 0;
-                
-                // Add student to percentages array for top performers
-                studentPercentages.push({
-                    name: student.Name,
-                    roll: student["Roll Number"],
-                    class: student.Class,
-                    percentage: parseFloat(percentage.toFixed(2))
-                });
-
-                if (percentage >= 50) { // Assuming 50% for pass
-                    passedStudents++;
-                    classWiseData[studentClass].passed++;
-                }
-
-                // Calculate grade for the overall student percentage
-                const { grade } = getGradeAndRemark(percentage);
-                if (gradeCounts[grade]) {
-                    gradeCounts[grade]++;
-                } else {
-                    // Handle cases like 'N/A' grade if marks are not declared for a student
-                    // Although the check for allMarksDeclared should prevent this in the main view
-                    // For analytics, we assume all data fetched is declared.
-                }
-
-                classWiseData[studentClass].totalMarks += studentTotalMarks;
-                classWiseData[studentClass].totalPossibleMarks += studentMaxMarks;
-            });
-
-            const overallPassRate = totalStudents > 0 ? ((passedStudents / totalStudents) * 100).toFixed(2) : 0;
-
-            let classAnalyticsHtml = '';
-            for (const className in classWiseData) {
-                const data = classWiseData[className];
-                const classPassRate = data.total > 0 ? ((data.passed / data.total) * 100).toFixed(2) : 0;
-                const classAverageMarks = data.totalPossibleMarks > 0 ? (data.totalMarks / data.totalPossibleMarks * 100).toFixed(2) : 0;
-                classAnalyticsHtml += `
-                    <div class="bg-gray-100 dark:bg-gray-700/50 p-4 rounded-lg">
-                        <h4 class="font-bold text-lg text-gray-900 dark:text-white">${className}</h4>
-                        <p class="text-gray-700 dark:text-gray-300">Total Students: ${data.total}</p>
-                        <p class="text-gray-700 dark:text-gray-300">Passed: ${data.passed} (${classPassRate}%)</p>
-                        <p class="text-gray-700 dark:text-gray-300">Average Percentage: ${classAverageMarks}%</p>
-                    </div>
-                `;
-            }
-
-            let gradeDistributionHtml = '';
-            for (const grade in gradeCounts) {
-                if (gradeCounts[grade] > 0) {
-                    gradeDistributionHtml += `<p class="text-gray-700 dark:text-gray-300">${grade}: ${gradeCounts[grade]} students</p>`;
-                }
-            }
-
-            const topPerformers = studentPercentages.sort((a, b) => b.percentage - a.percentage).slice(0, 5);
-            let topPerformersHtml = '';
-            if (topPerformers.length > 0) {
-                topPerformersHtml = '<h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2 mt-4">Top Performers (Overall)</h3><ul class="list-disc list-inside space-y-1">';
-                topPerformers.forEach((s, index) => {
-                    topPerformersHtml += `<li>${index + 1}. ${s.name} (${s.roll}, ${s.class}) - ${s.percentage}%</li>`;
-                });
-                topPerformersHtml += '</ul>';
-            }
-
-
-            analyticsContentDiv.innerHTML = `
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Overall Summary</h3>
-                <div class="p-4 bg-purple-50 dark:bg-purple-900/30 rounded-lg grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
-                    <div>
-                        <p class="text-sm text-purple-800 dark:text-purple-200 font-semibold">TOTAL STUDENTS</p>
-                        <p class="text-2xl font-bold text-purple-900 dark:text-white">${totalStudents}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-purple-800 dark:text-purple-200 font-semibold">OVERALL PASS RATE</p>
-                        <p class="text-2xl font-bold text-green-700 dark:text-green-300">${overallPassRate}%</p>
-                    </div>
-                </div>
-
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2 mt-4">Class-wise Breakdown</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    ${classAnalyticsHtml}
-                </div>
-
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2 mt-4">Grade Distribution</h3>
-                <div class="bg-gray-100 dark:bg-gray-700/50 p-4 rounded-lg">
-                    ${gradeDistributionHtml}
-                </div>
-                ${topPerformersHtml}
-            `;
         }
 
     </script>
