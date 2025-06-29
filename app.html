@@ -347,9 +347,21 @@
                 doc.rect(margin / 2, margin / 2, pageWidth - margin, pageHeight - margin);
                 
                 currentY += 10;
-                // Replaced image logo with text
-                doc.setFont("helvetica", "bold").setFontSize(22).setTextColor(0, 32, 74).text("Mzr University", margin + 10, currentY + 8);
-                doc.setFont("helvetica", "normal").setFontSize(12).setTextColor(100).text("Provisional Marksheet (Internal Assessment)", margin + 10, currentY + 16);
+
+                // Attempt to load logo, fallback to text if fails
+                const logoUrl = 'https://upscaspirantmzr.github.io/result/Logo.png';
+                let logoDataUrl = null;
+                try {
+                    logoDataUrl = await loadImageAsBase64(logoUrl);
+                    doc.addImage(logoDataUrl, 'PNG', margin + 5, currentY, 25, 25);
+                    doc.setFont("helvetica", "bold").setFontSize(22).setTextColor(0, 32, 74).text("Mzr University", margin + 35, currentY + 8);
+                    doc.setFont("helvetica", "normal").setFontSize(12).setTextColor(100).text("Provisional Marksheet (Internal Assessment)", margin + 35, currentY + 16);
+                } catch (imgError) {
+                    console.error("Failed to load logo image, using text fallback:", imgError);
+                    // Fallback to text if image loading fails
+                    doc.setFont("helvetica", "bold").setFontSize(22).setTextColor(0, 32, 74).text("Mzr University", margin + 10, currentY + 8);
+                    doc.setFont("helvetica", "normal").setFontSize(12).setTextColor(100).text("Provisional Marksheet (Internal Assessment)", margin + 10, currentY + 16);
+                }
                 
                 const qrString = `Roll: ${String(studentInfo["Roll Number"])}, Name: ${String(studentInfo.Name)}, Class: ${String(studentInfo.Class || 'N/A')}, IP: ${userIPAddress}`;
                 const qr = qrcode(0, 'L'); qr.addData(qrString); qr.make();
@@ -471,8 +483,7 @@
             return { grade: 'F', remark: 'Fail', color: { bg: 'bg-red-100 dark:bg-red-800/30', text: 'text-red-800 dark:text-red-200' } };
         }
 
-        // Removed loadImageAsBase64 function as it's no longer used for PDF generation.
-        /*
+        // Reinstated loadImageAsBase64 function for image loading.
         async function loadImageAsBase64(url) {
             return new Promise((resolve, reject) => {
                 const xhr = new XMLHttpRequest();
@@ -499,7 +510,6 @@
                 xhr.send();
             });
         }
-        */
         
         function displayLoader() {
             document.getElementById("resultContainer").innerHTML = `<div class="flex flex-col items-center justify-center text-center p-8"><svg class="animate-spin h-8 w-8 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><p class="mt-4 text-lg font-semibold text-gray-700 dark:text-gray-300">Fetching Your Marksheet...</p></div>`;
