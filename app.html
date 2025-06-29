@@ -147,11 +147,6 @@
             const requestUrl = `${webAppUrl}?class=${encodeURIComponent(selectedClass)}&roll=${encodeURIComponent(roll)}&ip=${encodeURIComponent(userIPAddress)}`;
 
             try {
-                // This 'fetch' call sends the request to your Google Apps Script.
-                // The "Failed to fetch" error occurs if the Apps Script doesn't
-                // have the correct CORS headers to respond to this request.
-                // The fix is in the Apps Script (`Code.gs`) file, not here.
-                // Ensure you have updated and re-deployed your Apps Script.
                 const res = await fetch(requestUrl);
                 if (!res.ok) {
                     throw new Error(`The server returned an error: ${res.statusText} (${res.status})`);
@@ -163,7 +158,9 @@
                     case "success":
                         const results = response.data;
                         const allMarksDeclared = results.every(subject => {
-                            return subject.Marks && subject.Marks.toString().trim() !== '' && !isNaN(parseInt(subject.Marks.toString().trim(), 10));
+                            // Safely check and parse Marks
+                            const marks = subject.Marks ? String(subject.Marks).trim() : '';
+                            return marks !== '' && !isNaN(parseInt(marks, 10));
                         });
 
                         if (allMarksDeclared) {
@@ -212,13 +209,16 @@
         function displayFullMarksheet(results) {
             const resultContainer = document.getElementById("resultContainer");
             const studentInfo = results[0];
-            const hasPracticalData = results.some(res => res["Practical Marks"] && res["Practical Marks"].toString().trim() !== '' && !isNaN(parseInt(res["Practical Marks"].toString().trim(), 10)));
+            // Safely check Practical Marks
+            const hasPracticalData = results.some(res => res["Practical Marks"] !== null && res["Practical Marks"] !== undefined && String(res["Practical Marks"]).trim() !== '' && !isNaN(parseInt(String(res["Practical Marks"]).trim(), 10)));
             let totalMarks = 0;
             let maxMarks = 0;
 
             const tableRows = results.map(subject => {
                 const theoryMarks = parseInt(subject["Marks"]?.toString().trim(), 10) || null;
-                const practicalMarks = parseInt(subject["Practical Marks"]?.toString().trim(), 10) || null;
+                // Safely handle practical marks, converting to string before trimming
+                const practicalMarks = (subject["Practical Marks"] !== null && subject["Practical Marks"] !== undefined) ? parseInt(String(subject["Practical Marks"]).trim(), 10) : null;
+                
                 if (theoryMarks === null) return '';
 
                 const subjectTotal = (theoryMarks || 0) + (practicalMarks || 0);
@@ -229,7 +229,7 @@
                 return `
                     <tr class="border-b dark:border-gray-700/50">
                         <td class="py-3 px-4 font-medium text-gray-900 dark:text-white">${subject.Subject}</td>
-                        <td class="py-3 px-4 text-center">${studentInfo.Class || 'N/A'}</td>
+                        <!-- Removed repetitive Class column: <td class="py-3 px-4 text-center">${studentInfo.Class || 'N/A'}</td> -->
                         <td class="py-3 px-4 text-center">${theoryMarks}</td>
                         ${hasPracticalData ? `<td class="py-3 px-4 text-center">${practicalMarks !== null ? practicalMarks : "N/A"}</td>` : ''}
                         <td class="py-3 px-4 text-center font-semibold">${subjectTotal}</td>
@@ -264,7 +264,7 @@
                         <thead class="text-xs text-gray-700 uppercase dark:text-gray-400">
                             <tr>
                                 <th scope="col" class="py-3 px-4">Subject</th>
-                                <th scope="col" class="py-3 px-4 text-center">Class</th>
+                                <!-- Removed repetitive Class column: <th scope="col" class="py-3 px-4 text-center">Class</th> -->
                                 <th scope="col" class="py-3 px-4 text-center">Theory</th>
                                 ${hasPracticalData ? `<th scope="col" class="py-3 px-4 text-center">Practical</th>` : ''}
                                 <th scope="col" class="py-3 px-4 text-center">Total</th>
@@ -307,32 +307,37 @@
                 const studentInfo = currentStudentResults[0];
                 if (!studentInfo) throw new Error("Student data missing.");
 
-                const hasPracticalData = currentStudentResults.some(res => res["Practical Marks"] && res["Practical Marks"].trim() !== '' && !isNaN(parseInt(res["Practical Marks"].trim(), 10)));
+                // Safely check Practical Marks
+                const hasPracticalData = currentStudentResults.some(res => res["Practical Marks"] !== null && res["Practical Marks"] !== undefined && String(res["Practical Marks"]).trim() !== '' && !isNaN(parseInt(String(res["Practical Marks"]).trim(), 10)));
                 let totalActualMarks = 0;
                 let totalPossibleMarks = 0;
 
                 const tableBody = currentStudentResults.map(res => {
-                    const theoryMarks = parseInt(res.Marks?.trim()) || null;
-                    const practicalMarks = parseInt(res["Practical Marks"]?.trim(), 10) || null;
+                    const theoryMarks = parseInt(res.Marks?.toString().trim()) || null;
+                    // Safely handle practical marks, converting to string before trimming
+                    const practicalMarks = (res["Practical Marks"] !== null && res["Practical Marks"] !== undefined) ? parseInt(String(res["Practical Marks"]).trim(), 10) : null;
+                    
                     if (theoryMarks === null) return null; 
                     const subjectTotal = (theoryMarks || 0) + (practicalMarks || 0);
                     const { grade, remark } = getGradeAndRemark(subjectTotal);
                     totalActualMarks += subjectTotal;
                     totalPossibleMarks += 100;
-                    const row = [res.Subject, theoryMarks];
-                    if (hasPracticalData) row.push(practicalMarks ?? "N/A");
-                    row.push(subjectTotal, grade, remark);
+                    const row = [
+                        String(res.Subject), // Ensure subject is string
+                        String(theoryMarks),  // Ensure theoryMarks is string
+                    ];
+                    if (hasPracticalData) row.push(String(practicalMarks ?? "N/A")); // Ensure practicalMarks is string
+                    row.push(
+                        String(subjectTotal), // Ensure subjectTotal is string
+                        String(grade),        // Ensure grade is string
+                        String(remark)        // Ensure remark is string
+                    );
                     return row;
                 }).filter(Boolean);
 
                 const percentage = totalPossibleMarks > 0 ? ((totalActualMarks / totalPossibleMarks) * 100).toFixed(2) : 0;
                 const overallResult = percentage >= 50 ? 'PASS' : 'FAIL';
                 
-                const [logoDataUrl, signatureDataUrl] = await Promise.all([
-                    loadImageAsBase64('https://upscaspirantmzr.github.io/result/Logo.png'),
-                    loadImageAsBase64('https://upscaspirantmzr.github.io/result/Sign.jpg')
-                ]);
-
                 const { width: pageWidth, height: pageHeight } = doc.internal.pageSize;
                 const margin = 10;
                 let currentY = margin;
@@ -342,11 +347,11 @@
                 doc.rect(margin / 2, margin / 2, pageWidth - margin, pageHeight - margin);
                 
                 currentY += 10;
-                doc.addImage(logoDataUrl, 'PNG', margin + 5, currentY, 25, 25);
-                doc.setFont("helvetica", "bold").setFontSize(22).setTextColor(0, 32, 74).text("Mzr University", margin + 35, currentY + 8);
-                doc.setFont("helvetica", "normal").setFontSize(12).setTextColor(100).text("Provisional Marksheet (Internal Assessment)", margin + 35, currentY + 16);
+                // Replaced image logo with text
+                doc.setFont("helvetica", "bold").setFontSize(22).setTextColor(0, 32, 74).text("Mzr University", margin + 10, currentY + 8);
+                doc.setFont("helvetica", "normal").setFontSize(12).setTextColor(100).text("Provisional Marksheet (Internal Assessment)", margin + 10, currentY + 16);
                 
-                const qrString = `Roll: ${studentInfo["Roll Number"]}, Name: ${studentInfo.Name}, Class: ${studentInfo.Class || 'N/A'}, IP: ${userIPAddress}`;
+                const qrString = `Roll: ${String(studentInfo["Roll Number"])}, Name: ${String(studentInfo.Name)}, Class: ${String(studentInfo.Class || 'N/A')}, IP: ${userIPAddress}`;
                 const qr = qrcode(0, 'L'); qr.addData(qrString); qr.make();
                 doc.addImage(qr.createDataURL(4), 'PNG', pageWidth - margin - 35, currentY, 30, 30);
                 
@@ -357,13 +362,13 @@
                 doc.setFontSize(11);
 
                 doc.setFont("helvetica", "bold").text("Full Name:", infoLeftX, currentY);
-                doc.setFont("helvetica", "normal").text(studentInfo.Name, infoRightX, currentY);
+                doc.setFont("helvetica", "normal").text(String(studentInfo.Name), infoRightX, currentY); // Ensured string conversion
                 currentY += 8;
                 doc.setFont("helvetica", "bold").text("Roll Number:", infoLeftX, currentY);
-                doc.setFont("helvetica", "normal").text(studentInfo["Roll Number"], infoRightX, currentY);
+                doc.setFont("helvetica", "normal").text(String(studentInfo["Roll Number"]), infoRightX, currentY); // Ensured string conversion
                 currentY += 8;
                 doc.setFont("helvetica", "bold").text("Class:", infoLeftX, currentY);
-                doc.setFont("helvetica", "normal").text(studentInfo.Class || 'N/A', infoRightX, currentY);
+                doc.setFont("helvetica", "normal").text(String(studentInfo.Class || 'N/A'), infoRightX, currentY); // Ensured string conversion
                 currentY += 10;
 
                 const tableHead = [['Subject', 'Theory']];
@@ -392,11 +397,11 @@
                 });
                 
                 const footerY = pageHeight - margin - 20;
-                const signatureImageHeight = 15, signatureImageWidth = 40;
-                const signatureX = pageWidth - margin - signatureImageWidth;
-                doc.addImage(signatureDataUrl, 'JPEG', signatureX, footerY - signatureImageHeight, signatureImageWidth, signatureImageHeight);
-                doc.setLineWidth(0.3).line(signatureX, footerY + 2, signatureX + signatureImageWidth, footerY + 2);
-                doc.setFontSize(10).setTextColor(100).text("Head of Department", signatureX + signatureImageWidth / 2, footerY + 7, { align: 'center' });
+                // Replaced signature image with a line and text
+                const signatureLineWidth = 60;
+                const signatureLineX = pageWidth - margin - signatureLineWidth;
+                doc.setLineWidth(0.3).line(signatureLineX, footerY, signatureLineX + signatureLineWidth, footerY);
+                doc.setFontSize(10).setTextColor(100).text("Head of Department", signatureLineX + signatureLineWidth / 2, footerY + 7, { align: 'center' });
                 
                 doc.setFontSize(9).setTextColor(150).text(`Generated: ${new Date().toLocaleString('en-IN')} | IP: ${userIPAddress}`, margin, footerY);
                 doc.setFont("helvetica", "italic").text("This is a computer-generated document.", margin, footerY + 5);
@@ -466,6 +471,8 @@
             return { grade: 'F', remark: 'Fail', color: { bg: 'bg-red-100 dark:bg-red-800/30', text: 'text-red-800 dark:text-red-200' } };
         }
 
+        // Removed loadImageAsBase64 function as it's no longer used for PDF generation.
+        /*
         async function loadImageAsBase64(url) {
             return new Promise((resolve, reject) => {
                 const xhr = new XMLHttpRequest();
@@ -475,14 +482,24 @@
                     if (xhr.status === 200) {
                         const reader = new FileReader();
                         reader.onloadend = () => resolve(reader.result);
-                        reader.onerror = () => reject(new Error('FileReader error.'));
+                        reader.onerror = (e) => {
+                            console.error(`FileReader error for ${url}:`, e);
+                            reject(new Error(`FileReader error for ${url}`));
+                        };
                         reader.readAsDataURL(xhr.response);
-                    } else reject(new Error(`HTTP error ${xhr.status}.`));
+                    } else {
+                        console.error(`HTTP error ${xhr.status} for ${url}: ${xhr.statusText}`);
+                        reject(new Error(`HTTP error ${xhr.status} for ${url}`));
+                    }
                 };
-                xhr.onerror = () => reject(new Error('Network error.'));
+                xhr.onerror = (e) => {
+                    console.error(`Network error for ${url}:`, e);
+                    reject(new Error(`Network error for ${url}`));
+                };
                 xhr.send();
             });
         }
+        */
         
         function displayLoader() {
             document.getElementById("resultContainer").innerHTML = `<div class="flex flex-col items-center justify-center text-center p-8"><svg class="animate-spin h-8 w-8 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><p class="mt-4 text-lg font-semibold text-gray-700 dark:text-gray-300">Fetching Your Marksheet...</p></div>`;
