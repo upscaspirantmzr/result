@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <base target="_top"> <!-- Crucial for Google Apps Script Web Apps -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sparrows Academy Admin Dashboard</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            background-image: linear-gradient(to top, #dfe9f3 0%, white 100%);
+        }
+        .dark body {
+            background-color: #0f172a;
+            background-image: linear-gradient(to top, #0f172a 0%, #1e293b 100%);
+        }
+        .transition-all {
+            transition: all 0.3s ease-in-out;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .main-card {
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+        .animated-gradient {
+            background-size: 200% 200%;
+            animation: gradient-animation 10s ease infinite;
+        }
+        @keyframes gradient-animation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+    </style>
+</head>
+<body class="transition-all">
+
+    <!-- Theme Toggle Button -->
+    <button id="theme-toggle" type="button" class="fixed top-4 right-4 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 z-50">
+        <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8 0 1010.586 10.586z"></path></svg>
+        <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707-.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+    </button>
+
+    <!-- Admin Login / Dashboard View -->
+    <div id="admin-container" class="w-full max-w-3xl mx-auto min-h-screen flex flex-col justify-center items-center p-4">
+        <div id="login-section" class="w-full bg-white dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl main-card border border-gray-200 dark:border-gray-700/50 overflow-hidden p-8">
+            <div class="p-4 bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-700 dark:to-pink-800 text-white text-center animated-gradient rounded-lg mb-6">
+                <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight">Admin Dashboard Login</h1>
+                <p class="text-purple-200 mt-1">Access school performance analytics</p>
+            </div>
+            <div>
+                <label for="admin-password" class="text-sm font-medium text-gray-700 dark:text-gray-300">Admin Password</label>
+                <input type="password" id="admin-password" placeholder="Enter password" class="mt-2 block w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all">
+            </div>
+            <button onclick="attemptLogin()" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-4 rounded-lg mt-6 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 dark:focus:ring-offset-gray-800 transform hover:scale-105">
+                Login to Dashboard
+            </button>
+            <div id="login-message" class="text-center text-red-600 dark:text-red-400 mt-4 text-sm font-medium"></div>
+        </div>
+
+        <div id="analytics-dashboard" class="hidden w-full bg-white dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl main-card border border-gray-200 dark:border-gray-700/50 overflow-hidden">
+            <div class="p-8 bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-700 dark:to-pink-800 text-white text-center animated-gradient">
+                <h1 class="text-3xl font-extrabold tracking-tight">Admin Analytics Dashboard</h1>
+                <p class="text-purple-200 mt-2">Overall school performance insights</p>
+            </div>
+            <div id="analyticsContent" class="p-6 md:p-8 space-y-4">
+                <!-- Analytics data will be rendered here -->
+                <div class="flex flex-col items-center justify-center text-center p-8">
+                    <svg class="animate-spin h-8 w-8 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <p class="mt-4 text-lg font-semibold text-gray-700 dark:text-gray-300">Loading Analytics Data...</p>
+                </div>
+            </div>
+            <div class="p-6 md:p-8 border-t border-gray-200 dark:border-gray-700/50 flex justify-center">
+                <button onclick="logout()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800">
+                    Logout
+                </button>
+            </div>
+        </div>
+
+        <footer class="text-center mt-8 text-sm text-gray-500 dark:text-gray-400">
+            <p>&copy; Developed & Maintained by E-Cell, Sparrows Academy.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Admin password (for client-side validation only, true validation is server-side)
+        const CLIENT_ADMIN_PASSWORD = "admin"; // This is just for the prompt, the real check is in Code.gs
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeTheme();
+            // Initially show login, hide dashboard
+            document.getElementById('login-section').classList.remove('hidden');
+            document.getElementById('analytics-dashboard').classList.add('hidden');
+        });
+
+        // Initializes the theme (dark/light mode) based on local storage or system preference
+        function initializeTheme() {
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            if(!themeToggleBtn) return;
+            const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+            const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+
+            if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                themeToggleLightIcon.classList.remove('hidden');
+            } else {
+                document.documentElement.classList.remove('dark');
+                themeToggleDarkIcon.classList.remove('hidden');
+            }
+
+            themeToggleBtn.addEventListener('click', () => {
+                themeToggleDarkIcon.classList.toggle('hidden');
+                themeToggleLightIcon.classList.toggle('hidden');
+                document.documentElement.classList.toggle('dark');
+                localStorage.setItem('color-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+            });
+        }
+
+        // Attempts to log in and fetch analytics
+        function attemptLogin() {
+            const passwordInput = document.getElementById('admin-password');
+            const password = passwordInput.value.trim();
+            const loginMessage = document.getElementById('login-message');
+
+            if (!password) {
+                loginMessage.textContent = 'Please enter the password.';
+                return;
+            }
+
+            loginMessage.textContent = 'Verifying...';
+
+            // Call the Apps Script function to fetch analytics data
+            // The password is sent to the server for verification.
+            google.script.run
+                .withSuccessHandler(response => {
+                    if (response.status === 'success') {
+                        loginMessage.textContent = '';
+                        document.getElementById('login-section').classList.add('hidden');
+                        document.getElementById('analytics-dashboard').classList.remove('hidden');
+                        generateAnalyticsReport(response.data);
+                    } else {
+                        loginMessage.textContent = response.message || 'Login failed. Please try again.';
+                    }
+                })
+                .withFailureHandler(error => {
+                    console.error("Apps Script Call Error:", error);
+                    loginMessage.textContent = `Error: ${error.message}. Please try again later.`;
+                })
+                .fetchAnalyticsData({ adminPassword: password }); // Pass password to server-side
+        }
+
+        // Logs out the admin by refreshing the page to show the login screen
+        function logout() {
+            // Simply reload the page to go back to the login screen
+            window.location.reload();
+        }
+
+        // --- Helper functions for analytics display (copied from previous code) ---
+
+        // Determines the grade, remark, and associated colors based on marks
+        function getGradeAndRemark(marks) {
+            if (marks === null || isNaN(marks)) return { grade: 'N/A', remark: 'Not Declared', color: { bg: 'bg-gray-200 dark:bg-gray-700', text: 'text-gray-800 dark:text-gray-200' } };
+            if (marks >= 90) return { grade: 'A+', remark: 'Outstanding', color: { bg: 'bg-green-100 dark:bg-green-800/30', text: 'text-green-800 dark:text-green-200' } };
+            if (marks >= 80) return { grade: 'A', remark: 'Excellent', color: { bg: 'bg-green-100 dark:bg-green-800/30', text: 'text-green-800 dark:text-green-200' } };
+            if (marks >= 70) return { grade: 'B', remark: 'Good', color: { bg: 'bg-blue-100 dark:bg-blue-800/30', text: 'text-blue-800 dark:text-blue-200' } };
+            if (marks >= 60) return { grade: 'C', remark: 'Satisfactory', color: { bg: 'bg-yellow-100 dark:bg-yellow-800/30', text: 'text-yellow-800 dark:text-yellow-200' } };
+            if (marks >= 50) return { grade: 'D', remark: 'Pass', color: { bg: 'bg-orange-100 dark:bg-orange-800/30', text: 'text-orange-800 dark:text-orange-200' } };
+            return { grade: 'F', remark: 'Fail', color: { bg: 'bg-red-100 dark:bg-red-800/30', text: 'text-red-800 dark:text-red-200' } };
+        }
+
+        // Generates and displays the analytics report
+        function generateAnalyticsReport(allStudentData) {
+            const analyticsContentDiv = document.getElementById("analyticsContent");
+            if (!allStudentData || allStudentData.length === 0) {
+                analyticsContentDiv.innerHTML = `
+                    <div class="rounded-lg p-4 bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                        <div class="flex">
+                            <div class="flex-shrink-0 text-2xl">ℹ️</div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-bold">No Data</h3>
+                                <div class="text-sm mt-1">No student data available for analytics. Please ensure your Google Sheet has data.</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            let totalStudents = 0;
+            let passedStudents = 0;
+            const classWiseData = {};
+            const gradeCounts = { 'A+': 0, 'A': 0, 'B': 0, 'C': 0, 'D': 0, 'F': 0 };
+            const studentPercentages = []; // Store { name, roll, class, percentage } for top performers
+
+            const uniqueStudents = {};
+            allStudentData.forEach(subjectEntry => {
+                const rollAndClass = `${subjectEntry["Roll Number"]}-${subjectEntry.Class}`;
+                if (!uniqueStudents[rollAndClass]) {
+                    uniqueStudents[rollAndClass] = {
+                        Name: subjectEntry.Name,
+                        "Roll Number": subjectEntry["Roll Number"],
+                        Class: subjectEntry.Class,
+                        subjects: []
+                    };
+                }
+                uniqueStudents[rollAndClass].subjects.push(subjectEntry);
+            });
+
+            Object.values(uniqueStudents).forEach(student => {
+                const studentClass = student.Class || 'N/A';
+                if (!classWiseData[studentClass]) {
+                    classWiseData[studentClass] = { total: 0, passed: 0, totalMarks: 0, totalPossibleMarks: 0 };
+                }
+
+                totalStudents++;
+                classWiseData[studentClass].total++;
+
+                let studentTotalMarks = 0;
+                let studentMaxMarks = 0;
+
+                const validSubjects = student.subjects.filter(s =>
+                    s.Marks && String(s.Marks).trim() !== '' && !isNaN(parseInt(String(s.Marks).trim(), 10))
+                );
+
+                validSubjects.forEach(subject => {
+                    const theoryMarks = parseInt(String(subject.Marks)?.trim(), 10) || 0;
+                    const practicalMarks = parseInt(String(subject["Practical Marks"])?.trim(), 10) || 0;
+                    const subjectTotal = theoryMarks + practicalMarks;
+                    studentTotalMarks += subjectTotal;
+                    studentMaxMarks += 100; // Each subject is assumed to be out of 100
+                });
+
+                const percentage = studentMaxMarks > 0 ? ((studentTotalMarks / studentMaxMarks) * 100) : 0;
+
+                studentPercentages.push({
+                    name: student.Name,
+                    roll: student["Roll Number"],
+                    class: student.Class,
+                    percentage: parseFloat(percentage.toFixed(2))
+                });
+
+                if (percentage >= 50) { // Assuming 50% for pass
+                    passedStudents++;
+                    classWiseData[studentClass].passed++;
+                }
+
+                const { grade } = getGradeAndRemark(percentage);
+                if (gradeCounts[grade]) {
+                    gradeCounts[grade]++;
+                } else {
+                    gradeCounts[grade] = 1;
+                }
+
+                classWiseData[studentClass].totalMarks += studentTotalMarks;
+                classWiseData[studentClass].totalPossibleMarks += studentMaxMarks;
+            });
+
+            const overallPassRate = totalStudents > 0 ? ((passedStudents / totalStudents) * 100).toFixed(2) : 0;
+
+            let classAnalyticsHtml = '';
+            for (const className in classWiseData) {
+                const data = classWiseData[className];
+                const classPassRate = data.total > 0 ? ((data.passed / data.total) * 100).toFixed(2) : 0;
+                const classAverageMarks = data.totalPossibleMarks > 0 ? (data.totalMarks / data.totalPossibleMarks * 100).toFixed(2) : 0;
+                classAnalyticsHtml += `
+                    <div class="bg-gray-100 dark:bg-gray-700/50 p-4 rounded-lg">
+                        <h4 class="font-bold text-lg text-gray-900 dark:text-white">${className}</h4>
+                        <p class="text-gray-700 dark:text-gray-300">Total Students: ${data.total}</p>
+                        <p class="text-gray-700 dark:text-gray-300">Passed: ${data.passed} (${classPassRate}%)</p>
+                        <p class="text-gray-700 dark:text-gray-300">Average Percentage: ${classAverageMarks}%</p>
+                    </div>
+                `;
+            }
+
+            let gradeDistributionHtml = '';
+            const orderedGrades = ['A+', 'A', 'B', 'C', 'D', 'F'];
+            orderedGrades.forEach(grade => {
+                if (gradeCounts[grade] > 0) {
+                    gradeDistributionHtml += `<p class="text-gray-700 dark:text-gray-300">${grade}: ${gradeCounts[grade]} students</p>`;
+                }
+            });
+
+            const topPerformers = studentPercentages.sort((a, b) => b.percentage - a.percentage).slice(0, 5);
+            let topPerformersHtml = '';
+            if (topPerformers.length > 0) {
+                topPerformersHtml = '<h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2 mt-4">Top Performers (Overall)</h3><ul class="list-disc list-inside space-y-1">';
+                topPerformers.forEach((s, index) => {
+                    topPerformersHtml += `<li>${index + 1}. ${s.name} (${s.roll}, ${s.class}) - ${s.percentage}%</li>`;
+                });
+                topPerformersHtml += '</ul>';
+            }
+
+
+            analyticsContentDiv.innerHTML = `
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Overall Summary</h3>
+                <div class="p-4 bg-purple-50 dark:bg-purple-900/30 rounded-lg grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
+                    <div>
+                        <p class="text-sm text-purple-800 dark:text-purple-200 font-semibold">TOTAL STUDENTS</p>
+                        <p class="text-2xl font-bold text-purple-900 dark:text-white">${totalStudents}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-purple-800 dark:text-purple-200 font-semibold">OVERALL PASS RATE</p>
+                        <p class="text-2xl font-bold text-green-700 dark:text-green-300">${overallPassRate}%</p>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2 mt-4">Class-wise Breakdown</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    ${classAnalyticsHtml}
+                </div>
+
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2 mt-4">Grade Distribution</h3>
+                <div class="bg-gray-100 dark:bg-gray-700/50 p-4 rounded-lg">
+                    ${gradeDistributionHtml}
+                </div>
+                ${topPerformersHtml}
+            `;
+        }
+
+    </script>
+</body>
+</html>
