@@ -80,14 +80,14 @@
                 <button onclick="fetchResult()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800 transform hover:scale-105">
                     Get Full Marksheet
                 </button>
-                 <div class="pt-4 text-center">
-                     <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Your IP Address for Verification</p>
-                     <p id="user-ip-display" class="font-mono text-sm font-semibold text-gray-700 dark:text-gray-300 mt-1">Loading...</p>
-                </div>
+                   <div class="pt-4 text-center">
+                       <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Your IP Address for Verification</p>
+                       <p id="user-ip-display" class="font-mono text-sm font-semibold text-gray-700 dark:text-gray-300 mt-1">Loading...</p>
+                   </div>
             </div>
 
             <div id="resultContainer" class="p-6 md:p-8 border-t border-gray-200 dark:border-gray-700/50">
-                 <!-- Disclaimer will be shown here initially -->
+                   <!-- Disclaimer will be shown here initially -->
             </div>
         </div>
         <footer class="text-center mt-8 text-sm text-gray-500 dark:text-gray-400">
@@ -108,6 +108,7 @@
             showDisclaimer();
         });
 
+        // Displays the initial disclaimer message in the result container
         function showDisclaimer() {
             const resultContainer = document.getElementById("resultContainer");
             resultContainer.innerHTML = `
@@ -121,7 +122,6 @@
                             <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-100">
                                 <ul class="list-disc list-inside space-y-1">
                                     <li>Enter your full and correct Roll Number to view your marksheet.</li>
-                                     <li>This webpage is being monitored please refrain yourself from making unnecessesary requests.</li>
                                     <li>This is a provisional marksheet for informational purposes only.</li>
                                     <li>For any discrepancies, please contact the examination office.</li>
                                 </ul>
@@ -132,6 +132,7 @@
             `;
         }
 
+        // Initializes the theme (dark/light mode) based on local storage or system preference
         function initializeTheme() {
             const themeToggleBtn = document.getElementById('theme-toggle');
             if(!themeToggleBtn) return;
@@ -154,6 +155,7 @@
             });
         }
 
+        // Fetches student data from the Google Sheet on page load
         async function fetchDataOnLoad() {
             try {
                 const res = await fetch(sheetURL);
@@ -164,6 +166,7 @@
             }
         }
 
+        // Fetches the user's IP address and displays it
         async function fetchUserIP() {
             const ipDisplayElement = document.getElementById('user-ip-display');
             try {
@@ -177,6 +180,7 @@
             }
         }
 
+        // Fetches and displays the result for the entered roll number
         function fetchResult() {
             const roll = document.getElementById("roll").value.trim();
             if (!roll) {
@@ -184,12 +188,22 @@
                 return;
             }
 
-            displayLoader();
+            displayLoader(); // Show loading indicator
 
+            // Simulate API call delay
             setTimeout(() => {
                 const results = allStudentData.filter(row => row["Roll Number"]?.trim().toLowerCase() === roll.toLowerCase());
                 if (results.length > 0) {
-                    const allMarksDeclared = results.every(subject => subject.Marks && subject.Marks.trim() !== '' && !isNaN(parseInt(subject.Marks.trim(), 10)));
+                    // Check if all relevant marks (Theory or Practical) are declared
+                    const allMarksDeclared = results.every(subject => {
+                        const hasTheoryMarks = subject.Marks && subject.Marks.trim() !== '' && !isNaN(parseInt(subject.Marks.trim(), 10));
+                        const hasPracticalMarks = subject["Practical Marks"] && subject["Practical Marks"].trim() !== '' && !isNaN(parseInt(subject["Practical Marks"].trim(), 10));
+                        // A subject is declared if it has theory marks, or if it's a practical subject and has practical marks.
+                        // For simplicity, we'll consider it declared if 'Marks' (theory) is available and valid.
+                        // Here, we check if 'Marks' exists and is a valid number.
+                        return hasTheoryMarks;
+                    });
+
                     if (allMarksDeclared) {
                         currentStudentResults = results;
                         displayFullMarksheet(results);
@@ -199,29 +213,32 @@
                 } else {
                     displayMessage('❌', 'Not Found', 'We couldn\'t find any results for the provided Roll Number. Please double-check and try again.', 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
                 }
-            }, 500);
+            }, 500); // Small delay to simulate network fetch
         }
 
+        // Displays the full marksheet in the UI
         function displayFullMarksheet(results) {
             const resultContainer = document.getElementById("resultContainer");
             const studentInfo = results[0];
-            const hasPracticalData = results.some(res => res["Practical Marks"] && !isNaN(parseInt(res["Practical Marks"]?.trim(), 10)));
+            const hasPracticalData = results.some(res => res["Practical Marks"] && res["Practical Marks"].trim() !== '' && !isNaN(parseInt(res["Practical Marks"].trim(), 10)));
             let totalMarks = 0;
             let maxMarks = 0;
 
             const tableRows = results.map(subject => {
                 const theoryMarks = parseInt(subject["Marks"]?.trim(), 10) || null;
                 const practicalMarks = parseInt(subject["Practical Marks"]?.trim(), 10) || null;
+                // Only include rows where theory marks are available for calculation and display
                 if (theoryMarks === null) return '';
 
                 const subjectTotal = (theoryMarks || 0) + (practicalMarks || 0);
                 const { grade, remark, color } = getGradeAndRemark(subjectTotal);
                 totalMarks += subjectTotal;
-                maxMarks += 100;
+                maxMarks += 100; // Assuming each subject is out of 100
 
                 return `
                     <tr class="border-b dark:border-gray-700/50">
                         <td class="py-3 px-4 font-medium text-gray-900 dark:text-white">${subject.Subject}</td>
+                        <td class="py-3 px-4 text-center">${subject.Class || 'N/A'}</td> <!-- Class visible on webpage table -->
                         <td class="py-3 px-4 text-center">${theoryMarks}</td>
                         ${hasPracticalData ? `<td class="py-3 px-4 text-center">${practicalMarks !== null ? practicalMarks : "N/A"}</td>` : ''}
                         <td class="py-3 px-4 text-center font-semibold">${subjectTotal}</td>
@@ -246,12 +263,17 @@
                         <p class="text-sm text-gray-600 dark:text-gray-300">Roll Number</p>
                         <p class="font-mono bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded">${studentInfo["Roll Number"]}</p>
                     </div>
+                    <div> <!-- Class display on webpage -->
+                        <p class="text-sm text-gray-600 dark:text-gray-300">Class</p>
+                        <p class="font-bold text-lg text-gray-900 dark:text-white">${studentInfo.Class || 'N/A'}</p>
+                    </div>
                 </div>
                 <div class="overflow-x-auto rounded-lg border dark:border-gray-700/50">
                     <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 result-table">
                         <thead class="text-xs text-gray-700 uppercase dark:text-gray-400">
                             <tr>
                                 <th scope="col" class="py-3 px-4">Subject</th>
+                                <th scope="col" class="py-3 px-4 text-center">Class</th> <!-- Class visible on webpage table header -->
                                 <th scope="col" class="py-3 px-4 text-center">Theory</th>
                                 ${hasPracticalData ? `<th scope="col" class="py-3 px-4 text-center">Practical</th>` : ''}
                                 <th scope="col" class="py-3 px-4 text-center">Total</th>
@@ -282,6 +304,7 @@
                 </div>`;
         }
         
+        // Determines the grade, remark, and associated colors based on marks
         function getGradeAndRemark(marks) {
             if (marks === null || isNaN(marks)) return { grade: 'N/A', remark: 'Not Declared', color: { bg: 'bg-gray-200 dark:bg-gray-700', text: 'text-gray-800 dark:text-gray-200' } };
             if (marks >= 90) return { grade: 'A+', remark: 'Outstanding', color: { bg: 'bg-green-100 dark:bg-green-800/30', text: 'text-green-800 dark:text-green-200' } };
@@ -292,6 +315,7 @@
             return { grade: 'F', remark: 'Fail', color: { bg: 'bg-red-100 dark:bg-red-800/30', text: 'text-red-800 dark:text-red-200' } };
         }
 
+        // Loads an image from a URL and converts it to Base64
         async function loadImageAsBase64(url) {
             return new Promise((resolve, reject) => {
                 const xhr = new XMLHttpRequest();
@@ -310,33 +334,38 @@
             });
         }
         
+        // Downloads the full marksheet as a PDF
         async function downloadFullMarksheetPDF() {
+            // Check if there is data to download
             if (currentStudentResults.length === 0) { displayMessage('!', 'Error', 'No data to download!', 'bg-red-100 text-red-800'); return; }
             try {
                 const studentInfo = currentStudentResults[0];
                 if (!studentInfo) throw new Error("Student data missing.");
 
-                const hasPracticalData = currentStudentResults.some(res => res["Practical Marks"] && !isNaN(parseInt(res["Practical Marks"]?.trim(), 10)));
+                const hasPracticalData = currentStudentResults.some(res => res["Practical Marks"] && res["Practical Marks"].trim() !== '' && !isNaN(parseInt(res["Practical Marks"].trim(), 10)));
                 let totalActualMarks = 0;
                 let totalPossibleMarks = 0;
 
+                // Prepare table body data for jsPDF autoTable
                 const tableBody = currentStudentResults.map(res => {
                     const theoryMarks = parseInt(res.Marks?.trim()) || null;
-                    const practicalMarks = parseInt(res["Practical Marks"]?.trim()) || null;
-                    if (theoryMarks === null) return null;
+                    const practicalMarks = parseInt(res["Practical Marks"]?.trim(), 10) || null;
+                    if (theoryMarks === null) return null; // Skip rows without theory marks
                     const subjectTotal = (theoryMarks || 0) + (practicalMarks || 0);
                     const { grade, remark } = getGradeAndRemark(subjectTotal);
                     totalActualMarks += subjectTotal;
-                    totalPossibleMarks += 100;
+                    totalPossibleMarks += 100; // Each subject is out of 100
+                    // Removed subject.Class from the row array for the PDF table
                     const row = [res.Subject, theoryMarks];
-                    if (hasPracticalData) row.push(practicalMarks ?? "N/A");
+                    if (hasPracticalData) row.push(practicalMarks ?? "N/A"); // Add practical column if present
                     row.push(subjectTotal, grade, remark);
                     return row;
-                }).filter(Boolean);
+                }).filter(Boolean); // Filter out nulls
 
                 const percentage = totalPossibleMarks > 0 ? ((totalActualMarks / totalPossibleMarks) * 100).toFixed(2) : 0;
                 const overallResult = percentage >= 50 ? 'PASS' : 'FAIL';
                 
+                // Load images for the PDF header and footer
                 const [logoDataUrl, signatureDataUrl] = await Promise.all([
                     loadImageAsBase64('https://upscaspirantmzr.github.io/result/Logo.png'),
                     loadImageAsBase64('https://upscaspirantmzr.github.io/result/Sign.jpg')
@@ -348,63 +377,64 @@
                 const margin = 10;
                 let currentY = margin;
 
-                doc.setDrawColor(0, 32, 74);
+                // Add a border around the page
+                doc.setDrawColor(0, 32, 74); // Dark blue for the border
                 doc.setLineWidth(0.5);
                 doc.rect(margin / 2, margin / 2, pageWidth - margin, pageHeight - margin);
                 
+                // Add university logo and title
                 currentY += 10;
                 doc.addImage(logoDataUrl, 'PNG', margin + 5, currentY, 25, 25);
                 doc.setFont("helvetica", "bold").setFontSize(22).setTextColor(0, 32, 74).text("Mzr University", margin + 35, currentY + 8);
                 doc.setFont("helvetica", "normal").setFontSize(12).setTextColor(100).text("Provisional Marksheet (Internal Assessment)", margin + 35, currentY + 16);
                 
-                const qrString = `Roll: ${studentInfo["Roll Number"]}, Name: ${studentInfo.Name}, IP: ${userIPAddress}`;
+                // Add QR code
+                const qrString = `Roll: ${studentInfo["Roll Number"]}, Name: ${studentInfo.Name}, Class: ${studentInfo.Class || 'N/A'}, IP: ${userIPAddress}`;
                 const qr = qrcode(0, 'L'); qr.addData(qrString); qr.make();
                 doc.addImage(qr.createDataURL(4), 'PNG', pageWidth - margin - 35, currentY, 30, 30);
                 
-                currentY += 40;
+                currentY += 40; // Move Y position after header
 
-                // --- Manual Student Info with Dashed Underline ---
+                // --- Manual Student Info (without dashed underline) ---
                 const infoLeftX = margin + 5;
                 const infoRightX = infoLeftX + 35; // X position for the values
                 doc.setFontSize(11);
 
                 // Name
                 doc.setFont("helvetica", "bold").text("Full Name:", infoLeftX, currentY);
-                doc.setFont("helvetica", "normal");
-                const nameText = studentInfo.Name;
-                const nameWidth = doc.getTextWidth(nameText);
-                doc.text(nameText, infoRightX, currentY);
-                doc.setLineDashPattern([2, 1], 0);
-                doc.line(infoRightX, currentY + 1, infoRightX + nameWidth, currentY + 1);
-                doc.setLineDashPattern([], 0);
+                doc.setFont("helvetica", "normal").text(studentInfo.Name, infoRightX, currentY);
 
                 currentY += 8;
 
                 // Roll Number
                 doc.setFont("helvetica", "bold").text("Roll Number:", infoLeftX, currentY);
-                doc.setFont("helvetica", "normal");
-                const rollText = studentInfo["Roll Number"];
-                const rollWidth = doc.getTextWidth(rollText);
-                doc.text(rollText, infoRightX, currentY);
-                doc.setLineDashPattern([2, 1], 0);
-                doc.line(infoRightX, currentY + 1, infoRightX + rollWidth, currentY + 1);
-                doc.setLineDashPattern([], 0);
+                doc.setFont("helvetica", "normal").text(studentInfo["Roll Number"], infoRightX, currentY);
                 
+                currentY += 8; // Move Y position down for Class
+
+                // Class
+                doc.setFont("helvetica", "bold").text("Class:", infoLeftX, currentY);
+                doc.setFont("helvetica", "normal").text(studentInfo.Class || 'N/A', infoRightX, currentY);
+
                 currentY += 10; // Space after info section
 
+                // Add the marks table
+                // Removed 'Class' from tableHead for the PDF table
                 const tableHead = [['Subject', 'Theory']];
                 if (hasPracticalData) tableHead[0].push('Practical');
                 tableHead[0].push('Total', 'Grade', 'Remarks');
 
                 doc.autoTable({
                     startY: currentY, head: tableHead, body: tableBody, theme: 'grid',
-                    headStyles: { fillColor: [22, 110, 160], textColor: 255 },
-                    styles: { fontSize: 10, cellPadding: 3, halign: 'center' },
+                    headStyles: { fillColor: [22, 110, 160], textColor: 255 }, // Header row styling
+                    styles: { fontSize: 10, cellPadding: 3, halign: 'center' }, // General cell styling
+                    // Adjusted columnStyles as 'Class' column is removed (now index 0 is Subject, not 1)
                     columnStyles: { 0: { halign: 'left' }, [tableHead[0].length -1]: { halign: 'left' } },
                     margin: { left: margin, right: margin }
                 });
-                currentY = doc.autoTable.previous.finalY;
+                currentY = doc.autoTable.previous.finalY; // Update Y position after table
 
+                // Add totals summary table (right aligned)
                 const totalsTableWidth = 85;
                 doc.autoTable({
                     startY: currentY + 2, body: [
@@ -412,21 +442,24 @@
                         ['Percentage', `${percentage}%`],
                         ['Overall Result', { content: overallResult, styles: { textColor: percentage >= 50 ? [0, 128, 0] : [255, 0, 0] }}]
                     ], theme: 'grid', tableWidth: totalsTableWidth,
-                    margin: { left: pageWidth - margin - totalsTableWidth },
+                    margin: { left: pageWidth - margin - totalsTableWidth }, // Position table to the right
                     styles: { cellPadding: 3, fontSize: 11 },
                     columnStyles: { 0: { fontStyle: 'bold', halign: 'right' }, 1: { fontStyle: 'bold' } }
                 });
                 
+                // Add footer with signature, IP address, and disclaimer
                 const footerY = pageHeight - margin - 20;
                 const signatureImageHeight = 15, signatureImageWidth = 40;
                 const signatureX = pageWidth - margin - signatureImageWidth;
                 doc.addImage(signatureDataUrl, 'JPEG', signatureX, footerY - signatureImageHeight, signatureImageWidth, signatureImageHeight);
-                doc.setLineWidth(0.3).line(signatureX, footerY + 2, signatureX + signatureImageWidth, footerY + 2);
+                doc.setLineWidth(0.3).line(signatureX, footerY + 2, signatureX + signatureImageWidth, footerY + 2); // Signature line
                 doc.setFontSize(10).setTextColor(100).text("Head of Department", signatureX + signatureImageWidth / 2, footerY + 7, { align: 'center' });
 
-                doc.setFontSize(9).setTextColor(150).text(`Generated: ${new Date().toLocaleString('en-IN')}`, margin, footerY);
+                // Changed: Added IP address to the generated info in the footer
+                doc.setFontSize(9).setTextColor(150).text(`Generated: ${new Date().toLocaleString('en-IN')} | IP: ${userIPAddress}`, margin, footerY);
                 doc.setFont("helvetica", "italic").text("This is a computer-generated document.", margin, footerY + 5);
                 
+                // Save the PDF
                 doc.save(`${studentInfo["Roll Number"]}_Marksheet.pdf`);
 
             } catch (error) {
@@ -435,12 +468,17 @@
             }
         }
         
+        // Displays a loading spinner and message
         function displayLoader() {
             document.getElementById("resultContainer").innerHTML = `<div class="flex flex-col items-center justify-center text-center p-8"><svg class="animate-spin h-8 w-8 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><p class="mt-4 text-lg font-semibold text-gray-700 dark:text-gray-300">Fetching Your Marksheet...</p></div>`;
         }
+        
+        // Displays a general message with an icon, title, and message
         function displayMessage(icon, title, message, colorClasses) {
             document.getElementById("resultContainer").innerHTML = `<div class="rounded-lg p-4 ${colorClasses}"><div class="flex"><div class="flex-shrink-0 text-2xl">${icon}</div><div class="ml-3"><h3 class="text-sm font-bold">${title}</h3><div class="text-sm mt-1">${message}</div></div></div></div>`;
         }
+        
+        // Clears the form and shows the disclaimer again
         function clearForm() {
             document.getElementById("roll").value = "";
             showDisclaimer();
