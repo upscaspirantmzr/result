@@ -5,7 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Analytics - Sparrows Academy</title>
 
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js for advanced graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -13,16 +19,6 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8;
-        }
-        .dark body {
-            background-color: #0f172a;
-        }
-        .transition-all {
-            transition: all 0.3s ease-in-out;
-        }
-        .main-card {
-            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
         }
         .animated-gradient {
             background-size: 200% 200%;
@@ -33,9 +29,15 @@
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
-        /* For the simple bar charts */
-        .bar-chart-bar {
-            transition: width 0.5s ease-out;
+        /* Ensure canvas containers have a responsive height */
+        .chart-container {
+            position: relative;
+            height: 400px; /* Default height */
+        }
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 350px; /* Slightly smaller height on mobile */
+            }
         }
     </style>
 </head>
@@ -49,23 +51,23 @@
 
     <!-- Admin Analytics View -->
     <div id="analytics-view" class="w-full max-w-7xl mx-auto min-h-screen p-4 sm:p-6 md:p-8">
-        <div class="p-6 bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-700 dark:to-pink-800 text-white text-center rounded-2xl animated-gradient mb-8 main-card">
-            <h1 class="text-4xl font-extrabold tracking-tight">Admin Analytics Dashboard</h1>
-            <p class="text-purple-200 mt-2 text-lg">School-wide performance insights</p>
-        </div>
+        <header class="p-6 bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-800 dark:to-pink-700 text-white text-center rounded-2xl animated-gradient mb-8 shadow-lg">
+            <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">Admin Analytics Dashboard</h1>
+            <p class="text-purple-200 mt-2 text-md md:text-lg">School-wide performance insights</p>
+        </header>
 
-        <div id="analyticsContent" class="space-y-8">
-            <!-- Analytics data will be rendered here -->
-            <div class="flex flex-col items-center justify-center text-center p-8">
+        <main id="analyticsContent" class="space-y-8">
+            <!-- Loading State -->
+            <div id="loadingState" class="flex flex-col items-center justify-center text-center p-8">
                 <svg class="animate-spin h-10 w-10 text-purple-600 dark:text-purple-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                 <p class="mt-4 text-xl font-semibold text-gray-700 dark:text-gray-300">Loading Analytics Data...</p>
                 <p class="text-gray-500 dark:text-gray-400">Please wait while we crunch the numbers.</p>
             </div>
-        </div>
+            <!-- Data will be rendered here -->
+        </main>
 
         <footer class="text-center mt-12 text-sm text-gray-500 dark:text-gray-400">
-             <!-- Make sure the path to your result portal is correct -->
-            <a href="./resultserver.html" class="text-indigo-600 dark:text-indigo-400 hover:underline mb-4 block">Back to Result Portal</a>
+             <a href="./resultserver.html" class="text-indigo-600 dark:text-indigo-400 hover:underline mb-4 block">Back to Result Portal</a>
             <p>&copy; Developed & Maintained by E-Cell, Sparrows Academy.</p>
         </footer>
     </div>
@@ -75,6 +77,7 @@
         // --- CONFIGURATION ---
         const baseURL = "https://opensheet.elk.sh/1Sfrx9iH5b1-CipMJIQZJ8z61P1PUlgDPrSypfwY6aew/"; 
         const CLASSES = ["Class 7", "Class 8", "Class 9"];
+        let chartInstances = {}; // To hold our chart objects for updates/destruction
 
         // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
@@ -88,229 +91,262 @@
             if(!themeToggleBtn) return;
             const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
             const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
-
-            if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.classList.add('dark');
-                themeToggleLightIcon.classList.remove('hidden');
-            } else {
-                document.documentElement.classList.remove('dark');
-                themeToggleDarkIcon.classList.remove('hidden');
-            }
+            const isDarkMode = localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            
+            document.documentElement.classList.toggle('dark', isDarkMode);
+            themeToggleLightIcon.classList.toggle('hidden', !isDarkMode);
+            themeToggleDarkIcon.classList.toggle('hidden', isDarkMode);
 
             themeToggleBtn.addEventListener('click', () => {
+                const isDark = document.documentElement.classList.toggle('dark');
+                localStorage.setItem('color-theme', isDark ? 'dark' : 'light');
                 themeToggleDarkIcon.classList.toggle('hidden');
                 themeToggleLightIcon.classList.toggle('hidden');
-                document.documentElement.classList.toggle('dark');
-                localStorage.setItem('color-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+                updateAllChartThemes();
             });
         }
         
         // --- CORE ANALYTICS LOGIC ---
-
-        // Main function to start loading and rendering analytics
         async function loadAnalytics() {
             try {
-                const allClassData = await fetchOverallData();
-                generateAnalyticsReport(allClassData);
+                const allData = await fetchOverallData();
+                const processedData = processAnalyticsData(allData);
+                renderAnalyticsReport(processedData);
             } catch (error) {
                 console.error("Analytics Data Fetch Error:", error);
-                displayMessage('❗', 'Analytics Error', `Failed to load analytics data: ${error.message}`, 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200', "analyticsContent");
+                document.getElementById('analyticsContent').innerHTML = `<div class="bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200 p-6 rounded-lg shadow-md"><h3 class="font-bold">❗ Analytics Error</h3><p>${error.message}</p></div>`;
             }
         }
 
-        // Fetches data for all defined classes concurrently
         async function fetchOverallData() {
             const fetchPromises = CLASSES.map(className => 
-                fetch(baseURL + className)
-                    .then(res => {
-                        if (!res.ok) throw new Error(`HTTP error! Status: ${res.status} for ${className}`);
-                        return res.json();
-                    })
+                fetch(`${baseURL}${className}`)
+                    .then(res => res.ok ? res.json() : Promise.reject(new Error(`Failed to load data for ${className}`)))
                     .then(data => data.map(student => ({ ...student, Class: className })))
-                    .catch(error => {
-                        console.error(`Error fetching data for ${className}:`, error);
-                        return []; // Return empty array on error for that class
-                    })
+                    .catch(error => { console.error(error); return []; })
             );
-            const allResults = await Promise.all(fetchPromises);
-            return [].concat(...allResults); // Flatten the array of arrays
+            return (await Promise.all(fetchPromises)).flat();
         }
 
-        // Processes the data and renders the full analytics report
-        function generateAnalyticsReport(allData) {
-            const analyticsContentDiv = document.getElementById("analyticsContent");
-            if (!allData || allData.length === 0) {
-                displayMessage('ℹ️', 'No Data', 'No student data available for analytics.', 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200', "analyticsContent");
-                return;
-            }
+        /**
+         * **FIXED & ROBUST DATA PROCESSING**
+         * This function now correctly groups all subjects for a student before any calculation,
+         * ensuring percentages are accurate and preventing data mix-ups.
+         */
+        function processAnalyticsData(allData) {
+            if (!allData || allData.length === 0) throw new Error("No student data available to process.");
 
-            // Group subjects by student
-            const students = {};
-            allData.forEach(row => {
-                const rollNo = row["Roll Number"];
-                if (!rollNo) return;
-                if (!students[rollNo]) {
-                    students[rollNo] = {
-                        name: row.Name,
-                        roll: rollNo,
-                        class: row.Class,
-                        subjects: []
-                    };
-                }
-                students[rollNo].subjects.push(row);
-            });
-
-            const studentList = Object.values(students);
-            const classWiseData = {};
-            const overallGradeCounts = { 'A+': 0, 'A': 0, 'B': 0, 'C': 0, 'D': 0, 'F': 0 };
-            const studentPerformances = [];
-
-            studentList.forEach(student => {
-                const studentClass = student.class || 'N/A';
-                if (!classWiseData[studentClass]) {
-                    classWiseData[studentClass] = { totalStudents: 0, passed: 0, totalMarks: 0, maxMarks: 0, subjectAverages: {} };
-                }
-                classWiseData[studentClass].totalStudents++;
-
-                let studentTotalMarks = 0;
-                let studentMaxMarks = 0;
-
-                student.subjects.forEach(subject => {
-                    const theoryMarks = parseInt(subject.Marks?.trim(), 10) || 0;
-                    const practicalMarks = parseInt(subject["Practical Marks"]?.trim(), 10) || 0;
-                    const subjectTotal = theoryMarks + practicalMarks;
-                    studentTotalMarks += subjectTotal;
-                    studentMaxMarks += 100;
-
-                    // For class-wise subject average
-                    if (!classWiseData[studentClass].subjectAverages[subject.Subject]) {
-                        classWiseData[studentClass].subjectAverages[subject.Subject] = { total: 0, count: 0 };
-                    }
-                    classWiseData[studentClass].subjectAverages[subject.Subject].total += subjectTotal;
-                    classWiseData[studentClass].subjectAverages[subject.Subject].count++;
-                });
-
-                const percentage = studentMaxMarks > 0 ? (studentTotalMarks / studentMaxMarks) * 100 : 0;
-                studentPerformances.push({ ...student, percentage });
-
-                if (percentage >= 50) {
-                    classWiseData[studentClass].passed++;
-                }
-
-                // Use the same grading for overall percentage
-                const { grade } = getGradeAndRemark(percentage); 
-                if (overallGradeCounts[grade]) overallGradeCounts[grade]++;
-            });
-
-            const totalStudents = studentList.length;
-            const totalPassed = Object.values(classWiseData).reduce((acc, curr) => acc + curr.passed, 0);
-            const overallPassRate = totalStudents > 0 ? (totalPassed / totalStudents * 100).toFixed(2) : 0;
+            const students = new Map(); // Using a Map for efficient key-based access
             
-            // --- RENDER HTML ---
-            const topPerformers = studentPerformances.sort((a, b) => b.percentage - a.percentage).slice(0, 5);
+            // Step 1: Group all subject rows by a unique student identifier (Roll Number + Class)
+            allData.forEach(row => {
+                const rollNo = row["Roll Number"]?.trim();
+                const studentClass = row.Class?.trim();
+                if (!rollNo || !studentClass || !row.Marks || isNaN(parseInt(row.Marks.trim(), 10))) return;
+
+                const studentId = `${rollNo}@${studentClass}`; // Unique ID
+                if (!students.has(studentId)) {
+                    students.set(studentId, { name: row.Name, roll: rollNo, class: studentClass, subjects: [] });
+                }
+                students.get(studentId).subjects.push(row);
+            });
+
+            // Step 2: Iterate over the grouped students to calculate performance
+            const studentPerformances = [];
+            students.forEach(student => {
+                let totalMarks = 0;
+                let maxMarks = 0;
+                student.subjects.forEach(subject => {
+                    totalMarks += (parseInt(subject.Marks?.trim(), 10) || 0) + (parseInt(subject["Practical Marks"]?.trim(), 10) || 0);
+                    maxMarks += 100; // Assume each subject is out of 100
+                });
+                
+                const percentage = maxMarks > 0 ? (totalMarks / maxMarks) * 100 : 0;
+                studentPerformances.push({ ...student, percentage, totalMarks, maxMarks });
+            });
+
+            // Step 3: Aggregate overall analytics from the processed student performances
+            const overallGradeCounts = { 'A+': 0, 'A': 0, 'B': 0, 'C': 0, 'D': 0, 'F': 0 };
+            const classWiseData = {};
+            const subjectPerformance = {};
+
+            studentPerformances.forEach(student => {
+                const { grade } = getGradeAndRemark(student.percentage);
+                if (overallGradeCounts.hasOwnProperty(grade)) overallGradeCounts[grade]++;
+
+                if (!classWiseData[student.class]) {
+                    classWiseData[student.class] = { totalStudents: 0, passed: 0, totalPercentage: 0 };
+                }
+                classWiseData[student.class].totalStudents++;
+                classWiseData[student.class].totalPercentage += student.percentage;
+                if (student.percentage >= 50) classWiseData[student.class].passed++;
+                
+                student.subjects.forEach(subject => {
+                    const subjectName = subject.Subject;
+                    if(!subjectPerformance[subjectName]) subjectPerformance[subjectName] = { total: 0, count: 0 };
+                    subjectPerformance[subjectName].total += (parseInt(subject.Marks?.trim(), 10) || 0) + (parseInt(subject["Practical Marks"]?.trim(), 10) || 0);
+                    subjectPerformance[subjectName].count++;
+                });
+            });
+
+            return {
+                totalStudents: studentPerformances.length,
+                overallPassRate: studentPerformances.filter(s => s.percentage >= 50).length / studentPerformances.length * 100,
+                topPerformers: studentPerformances.sort((a, b) => b.percentage - a.percentage).slice(0, 5),
+                gradeDistribution: overallGradeCounts,
+                classPerformance: classWiseData,
+                subjectPerformance
+            };
+        }
+        
+        // --- RENDER and CHART FUNCTIONS ---
+        function renderAnalyticsReport(data) {
+            document.getElementById('loadingState').remove();
+            const analyticsContentDiv = document.getElementById("analyticsContent");
             
             analyticsContentDiv.innerHTML = `
                 <!-- Overall Summary Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md">
-                        <h3 class="text-lg font-semibold text-gray-500 dark:text-gray-400">Total Students</h3>
-                        <p class="text-4xl font-bold text-gray-900 dark:text-white mt-2">${totalStudents}</p>
-                    </div>
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md">
-                        <h3 class="text-lg font-semibold text-gray-500 dark:text-gray-400">Overall Pass Rate</h3>
-                        <p class="text-4xl font-bold text-green-600 dark:text-green-400 mt-2">${overallPassRate}%</p>
-                    </div>
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md">
-                        <h3 class="text-lg font-semibold text-gray-500 dark:text-gray-400">Data Last Fetched</h3>
-                        <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">${new Date().toLocaleTimeString('en-IN')}</p>
-                    </div>
-                </div>
+                <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md"><h3 class="text-lg font-semibold text-gray-500 dark:text-gray-400">Total Students</h3><p class="text-4xl font-bold text-gray-900 dark:text-white mt-2">${data.totalStudents}</p></div>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md"><h3 class="text-lg font-semibold text-gray-500 dark:text-gray-400">Overall Pass Rate</h3><p class="text-4xl font-bold text-green-600 dark:text-green-400 mt-2">${data.overallPassRate.toFixed(1)}%</p></div>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md sm:col-span-2 lg:col-span-1"><h3 class="text-lg font-semibold text-gray-500 dark:text-gray-400">Data Last Fetched</h3><p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">${new Date().toLocaleTimeString('en-IN')}</p></div>
+                </section>
 
-                <!-- Class-wise and Grade Distribution -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <!-- Class-wise Breakdown -->
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md">
-                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Class-wise Breakdown</h3>
-                        <div class="space-y-4">
-                            ${Object.entries(classWiseData).map(([className, data]) => `
-                                <div>
-                                    <div class="flex justify-between items-center mb-1">
-                                        <span class="font-semibold text-gray-800 dark:text-gray-200">${className} (${data.passed}/${data.totalStudents} passed)</span>
-                                        <span class="text-sm font-medium text-indigo-600 dark:text-indigo-400">${(data.passed / data.totalStudents * 100).toFixed(1)}%</span>
-                                    </div>
-                                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-                                        <div class="bg-indigo-600 h-2.5 rounded-full bar-chart-bar" style="width: ${(data.passed / data.totalStudents * 100).toFixed(1)}%"></div>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                    <!-- Grade Distribution -->
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md">
-                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Overall Grade Distribution</h3>
-                         <div class="space-y-4">
-                            ${Object.entries(overallGradeCounts).map(([grade, count]) => `
-                                <div>
-                                    <div class="flex justify-between items-center mb-1">
-                                        <span class="font-semibold text-gray-800 dark:text-gray-200">Grade ${grade}</span>
-                                        <span class="text-sm font-medium text-pink-600 dark:text-pink-400">${count} students</span>
-                                    </div>
-                                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-                                        <div class="bg-pink-500 h-2.5 rounded-full bar-chart-bar" style="width: ${count / totalStudents * 100}%"></div>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                </div>
+                <!-- Charts -->
+                <section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-white dark:bg-gray-800 p-4 md:p-6 rounded-2xl shadow-md"><h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 text-center">Grade Distribution</h3><div class="chart-container"><canvas id="gradeChart"></canvas></div></div>
+                    <div class="bg-white dark:bg-gray-800 p-4 md:p-6 rounded-2xl shadow-md"><h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 text-center">Class Performance (Avg. %)</h3><div class="chart-container"><canvas id="classChart"></canvas></div></div>
+                </section>
+                
+                <!-- Subject Performance Chart -->
+                <section class="bg-white dark:bg-gray-800 p-4 md:p-6 rounded-2xl shadow-md">
+                    <h3 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-4">Subject-wise Average Scores</h3>
+                    <div class="chart-container" style="height: 500px;"><canvas id="subjectChart"></canvas></div>
+                </section>
 
                 <!-- Top Performers List -->
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md">
+                <section class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-md">
                     <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Top 5 Performers</h3>
                     <ul class="divide-y divide-gray-200 dark:divide-gray-700">
-                        ${topPerformers.map((s, index) => `
-                            <li class="py-3 flex items-center justify-between">
-                                <div class="flex items-center">
-                                    <span class="text-lg font-bold text-gray-500 dark:text-gray-400 mr-4">${index + 1}</span>
-                                    <div>
-                                        <p class="font-semibold text-gray-900 dark:text-white">${s.name}</p>
-                                        <p class="text-sm text-gray-500 dark:text-gray-400">${s.roll} - ${s.class}</p>
-                                    </div>
+                        ${data.topPerformers.map((s, index) => `
+                            <li class="py-4 flex items-center justify-between">
+                                <div class="flex items-center space-x-4"><span class="text-lg font-bold text-gray-400 dark:text-gray-500 w-6 text-center">${index + 1}</span>
+                                    <div><p class="font-semibold text-gray-900 dark:text-white">${s.name}</p><p class="text-sm text-gray-500 dark:text-gray-400">${s.roll} - ${s.class}</p></div>
                                 </div>
                                 <span class="font-bold text-lg text-green-600 dark:text-green-400">${s.percentage.toFixed(2)}%</span>
-                            </li>
-                        `).join('')}
+                            </li>`).join('') || `<li class="py-3 text-center text-gray-500">No student data to display.</li>`}
                     </ul>
-                </div>
+                </section>
             `;
+            
+            createGradeChart(data.gradeDistribution);
+            createClassChart(data.classPerformance);
+            createSubjectChart(data.subjectPerformance);
+        }
+        
+        function getChartColors() {
+            const isDark = document.documentElement.classList.contains('dark');
+            return {
+                gridColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                textColor: isDark ? '#d1d5db' : '#374151',
+                doughnutBorder: isDark ? '#1f2937' : '#ffffff',
+            };
+        }
+
+        function createGradeChart(gradeData) {
+            const ctx = document.getElementById('gradeChart')?.getContext('2d');
+            if(!ctx) return;
+            const colors = getChartColors();
+            chartInstances.grade = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(gradeData),
+                    datasets: [{
+                        data: Object.values(gradeData),
+                        backgroundColor: ['#10B981', '#3B82F6', '#6366F1', '#F59E0B', '#EF4444', '#71717A'],
+                        borderColor: colors.doughnutBorder,
+                        borderWidth: 4,
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: window.innerWidth < 768 ? 'bottom' : 'right', labels: { color: colors.textColor, boxWidth: 12, padding: 15 } } } }
+            });
+        }
+        
+        function createClassChart(classData) {
+            const ctx = document.getElementById('classChart')?.getContext('2d');
+            if(!ctx) return;
+            const colors = getChartColors();
+            const labels = Object.keys(classData);
+            const avgPercentages = labels.map(c => classData[c].totalPercentage / classData[c].totalStudents);
+            
+            chartInstances.class = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{ label: 'Average Percentage', data: avgPercentages, backgroundColor: '#8B5CF6', borderRadius: 6 }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+                    scales: {
+                        x: { beginAtZero: true, max: 100, grid: { color: colors.gridColor }, ticks: { color: colors.textColor } },
+                        y: { grid: { display: false }, ticks: { color: colors.textColor } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+        
+        function createSubjectChart(subjectData) {
+            const ctx = document.getElementById('subjectChart')?.getContext('2d');
+            if(!ctx) return;
+            const colors = getChartColors();
+            const labels = Object.keys(subjectData);
+            const avgScores = labels.map(s => (subjectData[s].total / subjectData[s].count));
+
+            chartInstances.subject = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Average Score', data: avgScores,
+                        backgroundColor: 'rgba(236, 72, 153, 0.6)', borderColor: 'rgba(236, 72, 153, 1)',
+                        borderWidth: 1, borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, max: 100, grid: { color: colors.gridColor }, ticks: { color: colors.textColor } },
+                        x: { grid: { display: false }, ticks: { color: colors.textColor, autoSkip: false, maxRotation: 45, minRotation: 45 } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+        
+        function updateAllChartThemes() {
+            const colors = getChartColors();
+            Object.values(chartInstances).forEach(chart => {
+                chart.options.plugins.legend.labels.color = colors.textColor;
+                if(chart.config.type === 'doughnut') chart.data.datasets[0].borderColor = colors.doughnutBorder;
+                if(chart.config.type === 'bar'){
+                    chart.options.scales.x.grid.color = colors.gridColor;
+                    chart.options.scales.y.grid.color = colors.gridColor;
+                    chart.options.scales.x.ticks.color = colors.textColor;
+                    chart.options.scales.y.ticks.color = colors.textColor;
+                }
+                chart.update();
+            });
         }
         
         // --- UTILITY FUNCTIONS ---
-
-        // Determines grade and color based on marks (used for student % classification)
-        function getGradeAndRemark(marks) {
-            if (marks === null || isNaN(marks)) return { grade: 'N/A' };
-            if (marks >= 90) return { grade: 'A+' };
-            if (marks >= 80) return { grade: 'A' };
-            if (marks >= 70) return { grade: 'B' };
-            if (marks >= 60) return { grade: 'C' };
-            if (marks >= 50) return { grade: 'D' };
+        function getGradeAndRemark(percentage) {
+            if (percentage >= 90) return { grade: 'A+' };
+            if (percentage >= 80) return { grade: 'A' };
+            if (percentage >= 70) return { grade: 'B' };
+            if (percentage >= 60) return { grade: 'C' };
+            if (percentage >= 50) return { grade: 'D' };
             return { grade: 'F' };
-        }
-
-        // Displays a general message for errors or info
-        function displayMessage(icon, title, message, colorClasses, targetElementId = "analyticsContent") {
-            document.getElementById(targetElementId).innerHTML = `
-                <div class="rounded-2xl p-6 ${colorClasses} max-w-2xl mx-auto main-card">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0 text-3xl">${icon}</div>
-                        <div class="ml-4">
-                            <h3 class="text-lg font-bold">${title}</h3>
-                            <div class="text-sm mt-1">${message}</div>
-                        </div>
-                    </div>
-                </div>
-            `;
         }
     </script>
 </body>
