@@ -52,7 +52,7 @@
         <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
     </button>
 
-    <div class="w-full max-w-2xl mx-auto min-h-screen flex flex-col justify-center p-4">
+    <div class="w-full max-w-3xl mx-auto min-h-screen flex flex-col justify-center p-4">
         <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
             <div class="p-6 bg-blue-600 dark:bg-blue-800 text-white text-center">
                 <div class="flex justify-center items-center gap-3">
@@ -88,6 +88,7 @@
         // Store student results and full dataset globally
         let currentStudentResults = [];
         let allStudentData = [];
+        // Make sure your Google Sheet has "Marks" for theory and "Practical Marks" for practicals.
         const sheetURL = "https://opensheet.elk.sh/1Sfrx9iH5b1-CipMJIQZJ8z61P1PUlgDPrSypfwY6aew/Sheet1";
         let userIPAddress = "Not available"; // Global variable to store IP
 
@@ -141,20 +142,15 @@
         async function fetchUserIP() {
             const ipDisplayElement = document.getElementById('user-ip-display');
             try {
-                console.log("Attempting to fetch IP address from ipify.org...");
                 const response = await fetch('https://api.ipify.org?format=json');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status} from ipify.org`);
-                }
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
                 const data = await response.json();
                 userIPAddress = data.ip; // Store IP globally
                 ipDisplayElement.textContent = userIPAddress;
-                console.log(`IP fetched successfully: ${userIPAddress}`);
             } catch (error) {
                 console.error('Error fetching IP address:', error);
-                ipDisplayElement.textContent = 'IP Not Found (Check Console)';
-                userIPAddress = "IP fetch failed"; // Update global variable on error
-                console.log(`IP fetch failed. userIPAddress is now: ${userIPAddress}`);
+                ipDisplayElement.textContent = 'IP Not Found';
+                userIPAddress = "IP fetch failed";
             }
         }
 
@@ -168,13 +164,13 @@
 
             displayLoader();
 
-            // Use the pre-fetched data to find all matching records
             const results = allStudentData.filter(row =>
                 row["Roll Number"]?.trim().toLowerCase() === roll.toLowerCase()
             );
 
             setTimeout(() => {
                 if (results.length > 0) {
+                    // Check if at least theory marks ("Marks" column) are declared for every subject
                     const allMarksDeclared = results.every(subject =>
                         subject.Marks && subject.Marks.trim() !== '' && !isNaN(parseInt(subject.Marks.trim(), 10))
                     );
@@ -191,24 +187,42 @@
             }, 500);
         }
 
-        // --- Display Full Marksheet UI ---
+        // --- MODIFIED: Display Full Marksheet UI with Practical Marks ---
         function displayFullMarksheet(results) {
             const resultContainer = document.getElementById("resultContainer");
-            const studentInfo = results[0]; // All rows will have the same name/roll
+            const studentInfo = results[0];
+
+            // Check if any result has a "Practical Marks" field with a valid number
+            const hasPracticalData = results.some(res => res["Practical Marks"] && !isNaN(parseInt(res["Practical Marks"]?.trim(), 10)));
 
             let totalMarks = 0;
             let maxMarks = 0;
+
             const tableRows = results.map(subject => {
-                const marks = parseInt(subject["Marks"]?.trim(), 10);
-                const { grade, remark, color } = getGradeAndRemark(marks);
-                if(!isNaN(marks)) {
-                    totalMarks += marks;
-                    maxMarks += 100;
-                }
+                const theoryMarksVal = parseInt(subject["Marks"]?.trim(), 10);
+                const practicalMarksVal = parseInt(subject["Practical Marks"]?.trim(), 10);
+
+                const theoryMarks = isNaN(theoryMarksVal) ? null : theoryMarksVal;
+                const practicalMarks = isNaN(practicalMarksVal) ? null : practicalMarksVal;
+                
+                // A subject row is only valid if theory marks are present.
+                if (theoryMarks === null) return ''; 
+
+                const subjectTotal = (theoryMarks || 0) + (practicalMarks || 0);
+                // getGradeAndRemark assumes total is out of 100, which is consistent with original logic
+                const { grade, remark, color } = getGradeAndRemark(subjectTotal); 
+                
+                totalMarks += subjectTotal;
+                maxMarks += 100; // Sticking to original logic where each subject is out of 100 total.
+
+                const practicalCell = hasPracticalData ? `<td class="py-3 px-4">${practicalMarks !== null ? practicalMarks : "N/A"}</td>` : '';
+
                 return `
                     <tr class="border-b dark:border-gray-700">
                         <td class="py-3 px-4 font-medium text-gray-900 dark:text-white">${subject.Subject}</td>
-                        <td class="py-3 px-4">${isNaN(marks) ? "N/A" : marks}</td>
+                        <td class="py-3 px-4">${theoryMarks}</td>
+                        ${practicalCell}
+                        <td class="py-3 px-4 font-semibold">${subjectTotal}</td>
                         <td class="py-3 px-4"><span class="px-2 py-1 text-xs font-semibold rounded-full ${color.bg} ${color.text}">${grade}</span></td>
                         <td class="py-3 px-4">${remark}</td>
                     </tr>
@@ -219,6 +233,7 @@
             const overallResultText = percentage >= 50 ? 'PASS' : 'FAIL';
             const overallResultColor = percentage >= 50 ? 'text-green-500' : 'text-red-500';
 
+            const practicalHeader = hasPracticalData ? `<th scope="col" class="py-3 px-4">Practical</th>` : '';
 
             resultContainer.innerHTML = `
                 <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Provisional Marksheet</h3>
@@ -238,7 +253,9 @@
                         <thead class="text-xs text-gray-700 uppercase dark:text-gray-400 bg-gray-100 dark:bg-gray-700">
                             <tr>
                                 <th scope="col" class="py-3 px-4">Subject</th>
-                                <th scope="col" class="py-3 px-4">Marks</th>
+                                <th scope="col" class="py-3 px-4">Theory</th>
+                                ${practicalHeader}
+                                <th scope="col" class="py-3 px-4">Total</th>
                                 <th scope="col" class="py-3 px-4">Grade</th>
                                 <th scope="col" class="py-3 px-4">Remark</th>
                             </tr>
@@ -273,7 +290,8 @@
 
         // --- UI & Utility Helpers ---
         function getGradeAndRemark(marks) {
-            if (isNaN(marks)) return { grade: 'N/A', remark: 'Not Declared', color: { bg: 'bg-gray-100 dark:bg-gray-700', text: 'text-gray-800 dark:text-gray-200' } };
+            if (marks === null || isNaN(marks)) return { grade: 'N/A', remark: 'Not Declared', color: { bg: 'bg-gray-100 dark:bg-gray-700', text: 'text-gray-800 dark:text-gray-200' } };
+            // Grading is based on percentage, assuming max 100 for the total of a subject
             if (marks >= 90) return { grade: 'A+', remark: 'Outstanding', color: { bg: 'bg-green-100 dark:bg-green-900/50', text: 'text-green-800 dark:text-green-200' } };
             if (marks >= 80) return { grade: 'A', remark: 'Excellent', color: { bg: 'bg-green-100 dark:bg-green-900/50', text: 'text-green-800 dark:text-green-200' } };
             if (marks >= 70) return { grade: 'B', remark: 'Good', color: { bg: 'bg-blue-100 dark:bg-blue-900/50', text: 'text-blue-800 dark:text-blue-200' } };
@@ -282,171 +300,137 @@
             return { grade: 'F', remark: 'Fail', color: { bg: 'bg-red-100 dark:bg-red-900/50', text: 'text-red-800 dark:text-red-200' } };
         }
 
-        // Helper function to load image as Base64 using XMLHttpRequest and FileReader for robustness
         async function loadImageAsBase64(url, mimeType) {
-            console.log(`[Image Load] Attempting to load: ${url}`);
             return new Promise((resolve, reject) => {
                 const xhr = new XMLHttpRequest();
                 xhr.open('GET', url);
-                xhr.responseType = 'blob'; // Get response as Blob
+                xhr.responseType = 'blob';
                 xhr.onload = function() {
                     if (xhr.status === 200) {
                         const reader = new FileReader();
-                        reader.onloadend = function() {
-                            console.log(`[Image Load] Successfully loaded ${url}`);
-                            resolve(reader.result); // Base64 string
-                        };
-                        reader.onerror = function() {
-                            console.error(`[Image Load] FileReader error for ${url}:`, reader.error);
-                            reject(new Error(`FileReader error for ${url}`));
-                        };
+                        reader.onloadend = () => resolve(reader.result);
+                        reader.onerror = () => reject(new Error(`FileReader error for ${url}`));
                         reader.readAsDataURL(xhr.response);
                     } else {
-                        console.error(`[Image Load] HTTP Error ${xhr.status} for ${url}`);
-                        reject(new Error(`HTTP error ${xhr.status} when loading ${url}. Check URL and CORS.`));
+                        reject(new Error(`HTTP error ${xhr.status} for ${url}.`));
                     }
                 };
-                xhr.onerror = function() {
-                    console.error(`[Image Load] Network error during XHR for ${url}`);
-                    reject(new Error(`Network error when fetching ${url}.`));
-                };
+                xhr.onerror = () => reject(new Error(`Network error for ${url}.`));
                 xhr.send();
             });
         }
-
-        // --- FEATURE-RICH PDF DOWNLOAD for Full Marksheet ---
+        
+        // --- MODIFIED: PDF DOWNLOAD with Practical Marks ---
         async function downloadFullMarksheetPDF() {
             if (currentStudentResults.length === 0) {
                 displayMessage('!', 'Error', 'No result data to download!', 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
-                console.error("PDF generation aborted: No student results available.");
                 return;
             }
 
             try {
-                console.log("Starting PDF generation process...");
-
-                // Ensure studentInfo is always available
                 const studentInfo = currentStudentResults[0];
-                if (!studentInfo) {
-                    console.error("Student information not available for PDF generation.");
-                    displayMessage('!', 'PDF Error', 'Student data missing for PDF generation.', 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
-                    return;
-                }
+                if (!studentInfo) throw new Error("Student data missing.");
 
-                // Calculate totals and percentage within this function
+                // Check if any result has practical marks to decide table structure
+                const hasPracticalData = currentStudentResults.some(res => res["Practical Marks"] && !isNaN(parseInt(res["Practical Marks"]?.trim(), 10)));
+                
                 let totalActualMarks = 0;
                 let totalPossibleMarks = 0;
-                currentStudentResults.forEach(res => {
-                    const marks = parseInt(res.Marks?.trim(), 10);
-                    if (!isNaN(marks)) {
-                        totalActualMarks += marks;
-                        totalPossibleMarks += 100;
-                    }
-                });
-                const percentage = totalPossibleMarks > 0 ? ((totalActualMarks / totalPossibleMarks) * 100).toFixed(2) : 0;
-                const overallResult = percentage >= 50 ? 'PASS' : 'FAIL'; // Define overallResult here
 
-                // Pre-load images
-                console.log("Attempting to pre-load images for PDF...");
+                const tableBody = currentStudentResults.map(res => {
+                    const theoryMarksVal = parseInt(res["Marks"]?.trim(), 10);
+                    const practicalMarksVal = parseInt(res["Practical Marks"]?.trim(), 10);
+                    
+                    const theoryMarks = isNaN(theoryMarksVal) ? null : theoryMarksVal;
+                    const practicalMarks = isNaN(practicalMarksVal) ? null : practicalMarksVal;
+
+                    if (theoryMarks === null) return null;
+
+                    const subjectTotal = (theoryMarks || 0) + (practicalMarks || 0);
+                    const { grade, remark } = getGradeAndRemark(subjectTotal);
+                    
+                    totalActualMarks += subjectTotal;
+                    totalPossibleMarks += 100;
+
+                    let rowData = [res.Subject, theoryMarks];
+                    if (hasPracticalData) {
+                        rowData.push(practicalMarks !== null ? practicalMarks : "N/A");
+                    }
+                    rowData.push(subjectTotal, grade, remark);
+                    return rowData;
+                }).filter(row => row !== null); // Filter out any invalid rows
+
+                const percentage = totalPossibleMarks > 0 ? ((totalActualMarks / totalPossibleMarks) * 100).toFixed(2) : 0;
+                const overallResult = percentage >= 50 ? 'PASS' : 'FAIL';
+                
                 const [logoDataUrl, signatureDataUrl] = await Promise.all([
                     loadImageAsBase64('https://upscaspirantmzr.github.io/result/Logo.png', 'image/png'),
                     loadImageAsBase64('https://upscaspirantmzr.github.io/result/Sign.jpg', 'image/jpeg')
-                ]).catch(error => {
-                    console.error("Error during image pre-loading in PDF function:", error);
-                    displayMessage('❗', 'Image Loading Failed', `Could not load necessary images for PDF: ${error.message}. Check browser console.`, 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
-                    throw error; // Re-throw to stop PDF generation if images fail
-                });
-                console.log("Images successfully pre-loaded as Base64 data URLs.");
-
+                ]);
 
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
                 const pageWidth = doc.internal.pageSize.getWidth();
                 const pageHeight = doc.internal.pageSize.getHeight();
                 const margin = 10;
-                let currentY = margin + 10; // Start initial Y position after top margin
+                let currentY = margin + 10;
 
-                // --- Page Border ---
                 doc.setDrawColor(0, 32, 74);
                 doc.setLineWidth(1);
                 doc.rect(margin, margin, pageWidth - (2 * margin), pageHeight - (2 * margin));
-                console.log("Page border added.");
 
-
-                // --- Header (Logo, University, Marksheet Title) ---
                 const logoWidth = 25;
                 const logoHeight = 25;
                 const headerTextXOffset = margin + 5 + logoWidth + 5;
-
                 doc.addImage(logoDataUrl, 'PNG', margin + 5, currentY, logoWidth, logoHeight);
-                console.log("Logo added to header.");
-
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(22);
                 doc.setTextColor(0, 32, 74);
                 doc.text("Mzr University", headerTextXOffset, currentY + 10);
-
                 doc.setFontSize(12);
                 doc.setFont("helvetica", "normal");
                 doc.setTextColor(100, 100, 100);
                 doc.text("Department of Law", headerTextXOffset, currentY + 18);
                 doc.text("Provisional Marksheet (Internal Assessment)", headerTextXOffset, currentY + 25);
-                currentY += Math.max(logoHeight, 40); // Advance Y after header, considering logo height
-                console.log("Header text added.");
-
-                // --- QR Code (Early Position) ---
+                
                 const qrSize = 35;
                 const qrX = pageWidth - margin - qrSize - 5;
-                const qrY = margin + 10; // Same level as the logo/header
+                const qrY = margin + 10;
                 const qrString = `Roll: ${studentInfo["Roll Number"]}, Name: ${studentInfo.Name}, Percentage: ${percentage}%, IP: ${userIPAddress}`;
                 const qr = qrcode(0, 'L');
                 qr.addData(qrString);
                 qr.make();
                 const qrImgData = qr.createDataURL(4);
                 doc.addImage(qrImgData, 'PNG', qrX, qrY, qrSize, qrSize);
-                console.log("QR Code added.");
 
-                // Adjust currentY to ensure subsequent content starts below the highest point of header/QR
-                currentY = Math.max(currentY, qrY + qrSize + 5); // Add a small buffer after the top block
+                currentY = Math.max(currentY + logoHeight, qrY + qrSize) + 15;
 
-
-                // --- Student Info Table ---
                 doc.autoTable({
                     startY: currentY,
-                    body: [
-                        ["Full Name", studentInfo.Name],
-                        ["Roll Number", studentInfo["Roll Number"]]
-                    ],
+                    body: [["Full Name", studentInfo.Name], ["Roll Number", studentInfo["Roll Number"]]],
                     theme: 'plain',
                     styles: { fontSize: 11, cellPadding: 2 },
                     columnStyles: { 0: { fontStyle: 'bold' } },
                     margin: { left: margin + 5 }
                 });
-                currentY = doc.autoTable.previous.finalY + 5; // Add buffer after table
-                console.log("Student info table added.");
+                currentY = doc.autoTable.previous.finalY + 5;
 
-                // --- Main Results Table ---
+                // Define table head dynamically based on practical data
+                const tableHead = [['Subject', 'Theory']];
+                if (hasPracticalData) tableHead[0].push('Practical');
+                tableHead[0].push('Total', 'Grade', 'Remarks');
+
                 doc.autoTable({
                     startY: currentY,
-                    head: [['Subject', 'Marks Obtained', 'Grade', 'Remarks']],
-                    body: currentStudentResults.map(res => {
-                        const marks = parseInt(res["Marks"]?.trim(), 10);
-                        const { grade, remark } = getGradeAndRemark(marks);
-                        return [res.Subject, isNaN(marks) ? "N/A" : marks, grade, remark];
-                    }),
+                    head: tableHead,
+                    body: tableBody,
                     theme: 'grid',
                     headStyles: { fillColor: [0, 32, 74] },
-                    styles: { fontSize: 10, cellPadding: 3 },
-                    columnStyles: {
-                        1: { halign: 'center' },
-                        2: { halign: 'center' }
-                    },
-                    margin: { left: margin + 5, right: margin }
+                    styles: { fontSize: 10, cellPadding: 3, halign: 'center' },
+                    columnStyles: { 0: { halign: 'left' }, 5: { halign: 'left' } }
                 });
                 currentY = doc.autoTable.previous.finalY;
-                console.log("Main results table added.");
 
-                // --- Totals and Percentage Table ---
                 doc.autoTable({
                     startY: currentY,
                     body: [
@@ -455,60 +439,30 @@
                         ['Overall Result', overallResult]
                     ],
                     theme: 'grid',
-                    columnStyles: {
-                        0: { fontStyle: 'bold', halign: 'right', cellPadding: 3, fontSize: 11 },
-                        1: { fontStyle: 'bold', halign: 'left', cellPadding: 3, fontSize: 11 }
-                    },
+                    columnStyles: { 0: { fontStyle: 'bold', halign: 'right' }, 1: { fontStyle: 'bold' } },
+                    styles: { cellPadding: 3, fontSize: 11 },
                     margin: { left: margin + 5, right: margin }
                 });
-                currentY = doc.autoTable.previous.finalY;
-                console.log("Totals table added.");
 
-
-                // --- Footer Content Positioning ---
-                const footerTextSize = 9;
-                const footerLineSpacing = 4;
-                const numFooterLines = 3;
-                const signatureImageHeight = 20; // As specified
-                const signatureImageWidth = 45; // As specified
-                const signatureTextLineHeight = 5; // Height for "Head of Department" text
-
-                // Calculate vertical position for the bottom-most line of text
-                let footerBottomY = pageHeight - margin - footerTextSize;
-
-                doc.setFontSize(footerTextSize);
-                doc.setTextColor(100, 100, 100);
-
-                // Print footer lines from bottom up
-                doc.text("This is a computer-generated document. No signature is required.", margin + 5, footerBottomY);
-                footerBottomY -= (footerTextSize + footerLineSpacing);
-                doc.text(`Your IP Address: ${userIPAddress}`, margin + 5, footerBottomY);
-                footerBottomY -= (footerTextSize + footerLineSpacing);
-                doc.text(`Date of Declaration: ${new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}`, margin + 5, footerBottomY);
-                console.log("Footer text added.");
-
-
-                // --- Signature Block ---
-                const signatureX = pageWidth - margin - signatureImageWidth;
-                // Position above the entire footer text block, with some buffer
-                const signatureBlockStartY = pageHeight - margin - (numFooterLines * (footerTextSize + footerLineSpacing)) - signatureImageHeight - signatureTextLineHeight - 5;
-                doc.addImage(signatureDataUrl, 'JPEG', signatureX, signatureBlockStartY, signatureImageWidth, signatureImageHeight);
-
-                // Add signature line and text below the image
+                const signatureImageHeight = 20, signatureImageWidth = 45;
+                const signatureX = pageWidth - margin - signatureImageWidth - 5;
+                const signatureY = pageHeight - margin - signatureImageHeight - 20;
+                doc.addImage(signatureDataUrl, 'JPEG', signatureX, signatureY, signatureImageWidth, signatureImageHeight);
                 doc.setLineWidth(0.5);
-                doc.line(signatureX, signatureBlockStartY + signatureImageHeight + 2, signatureX + signatureImageWidth, signatureBlockStartY + signatureImageHeight + 2);
+                doc.line(signatureX, signatureY + signatureImageHeight + 2, signatureX + signatureImageWidth, signatureY + signatureImageHeight + 2);
                 doc.setFontSize(10);
-                doc.setTextColor(100, 100, 100);
-                doc.text("Head of Department", signatureX + (signatureImageWidth / 2), signatureBlockStartY + signatureImageHeight + 2 + signatureTextLineHeight, {align: 'center'});
-                console.log("Signature block added.");
+                doc.setTextColor(100);
+                doc.text("Head of Department", signatureX + signatureImageWidth / 2, signatureY + signatureImageHeight + 7, { align: 'center' });
 
-
+                const footerTextY = pageHeight - margin - 5;
+                doc.setFontSize(9);
+                doc.text(`Date: ${new Date().toLocaleDateString('en-IN')}, IP: ${userIPAddress}. This is a computer-generated document.`, margin + 5, footerTextY);
+                
                 doc.save(`${studentInfo["Roll Number"]}_Marksheet.pdf`);
-                console.log("PDF generation successful! File should be downloaded.");
 
             } catch (error) {
                 console.error("Caught error during PDF generation:", error);
-                displayMessage('❗', 'PDF Generation Failed', `An error occurred: ${error.message}. Check browser console for more details.`, 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
+                displayMessage('❗', 'PDF Generation Failed', `An error occurred: ${error.message}. Check console.`, 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
             }
         }
 
