@@ -1,105 +1,152 @@
 <!DOCTYPE html>
-<html lang="en" class=""> <!-- Default to light mode, class is toggled by JS -->
+<html lang="en" class="">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Exam Result Portal</title>
-    
-    <!-- Tailwind CSS for modern styling -->
+    <title>Sparrows Academy Result Portal</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- jsPDF for PDF generation -->
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- jsPDF AutoTable Plugin (REQUIRED for autoTable functionality) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-    <!-- jsPDF SVG Plugin (REQUIRED for addSvgAsImage functionality) -->
     <script src="https://unpkg.com/jspdf-svg@latest/dist/jspdf.plugin.svg.min.js"></script>
 
-    <!-- QR Code Generator Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 
-    <!-- Google Fonts for a clean look -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
-        /* Using a custom font from Google Fonts */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6; /* light mode bg */
+            background-color: #f0f4f8; /* A lighter, cleaner background */
+            background-image: linear-gradient(to top, #dfe9f3 0%, white 100%);
         }
         .dark body {
-            background-color: #111827; /* dark mode bg */
+            background-color: #0f172a; /* A darker, richer background */
+            background-image: linear-gradient(to top, #0f172a 0%, #1e293b 100%);
         }
-        /* Custom transition for smoother UI changes */
         .transition-all {
             transition: all 0.3s ease-in-out;
         }
-        /* Hide scrollbar for aesthetics but allow scrolling */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .result-table th, .result-table td {
+            @apply px-4 py-3 text-left text-sm;
+        }
+        .result-table thead th {
+            @apply font-semibold bg-gray-100 dark:bg-gray-700/50;
+        }
+        .result-table tbody tr:nth-child(even) {
+            @apply bg-gray-50 dark:bg-gray-800/50;
+        }
+        .main-card {
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+        .animated-gradient {
+            background-size: 200% 200%;
+            animation: gradient-animation 10s ease infinite;
+        }
+        @keyframes gradient-animation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
     </style>
 </head>
 <body class="transition-all">
 
-    <!-- Dark Mode Toggle -->
     <button id="theme-toggle" type="button" class="fixed top-4 right-4 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 z-50">
         <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8 0 1010.586 10.586z"></path></svg>
         <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
     </button>
 
-    <div class="w-full max-w-md mx-auto min-h-screen flex flex-col justify-center p-4">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
-            <!-- Header Section -->
-            <div class="p-6 bg-blue-600 dark:bg-blue-800 text-white text-center">
-                <div class="flex justify-center items-center gap-3">
-                    <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.627 48.627 0 0 1 12 20.904a48.627 48.627 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.57 50.57 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.902 59.902 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" /></svg>
-                    <h1 class="text-2xl font-bold">Exam Result Portal</h1>
+    <div class="w-full max-w-3xl mx-auto min-h-screen flex flex-col justify-center items-center p-4">
+        <div class="w-full bg-white dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl main-card border border-gray-200 dark:border-gray-700/50 overflow-hidden">
+            <div class="p-8 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-700 dark:to-indigo-800 text-white text-center animated-gradient">
+                <div class="flex justify-center items-center gap-4">
+                    <svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.627 48.627 0 0 1 12 20.904a48.627 48.627 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.57 50.57 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.902 59.902 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" /></svg>
+                    <h1 class="text-3xl font-extrabold tracking-tight">Exam Result Portal</h1>
                 </div>
-                <p class="text-blue-200 dark:text-blue-300 mt-1">Check your internal assessment scores</p>
+                <p class="text-indigo-200 mt-2">View your internal assessment marksheet</p>
             </div>
 
-            <!-- Form Section -->
-            <div class="p-6 md:p-8 space-y-4">
+            <div class="p-6 md:p-8 space-y-6">
                 <div>
-                    <label for="roll" class="text-sm font-medium text-gray-700 dark:text-gray-300">Roll Number</label>
-                    <input type="text" id="roll" placeholder="e.g., 21CS001" class="mt-1 block w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                </div>
-                <div>
-                    <label for="subject" class="text-sm font-medium text-gray-700 dark:text-gray-300">Subject</label>
-                    <select id="subject" class="mt-1 block w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                        <option value="">-- Loading Subjects --</option>
+                    <label for="class-select" class="text-sm font-medium text-gray-700 dark:text-gray-300">Select Class</label>
+                    <select id="class-select" class="mt-2 block w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all">
+                        <option value="">Select a Class</option>
+                        <option value="Class 7">Class 7</option>
+                        <option value="Class 8">Class 8</option>
+                        <option value="Class 9">Class 9</option>
+                    
                     </select>
                 </div>
-                <button onclick="fetchResult()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800">
-                    Get Result
+                <div>
+                    <label for="roll" class="text-sm font-medium text-gray-700 dark:text-gray-300">Enter Your Roll Number</label>
+                    <input type="text" id="roll" placeholder="e.g., 21CS001" class="mt-2 block w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all">
+                </div>
+                <button onclick="fetchResult()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800 transform hover:scale-105">
+                    Get Full Marksheet
                 </button>
+                   <div class="pt-4 text-center">
+                       <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Your IP Address for Verification</p>
+                       <p id="user-ip-display" class="font-mono text-sm font-semibold text-gray-700 dark:text-gray-300 mt-1">Loading...</p>
+                   </div>
             </div>
 
-            <!-- Result Display Section -->
-            <div id="resultContainer" class="p-6 md:p-8 border-t border-gray-200 dark:border-gray-700"></div>
+            <div id="resultContainer" class="p-6 md:p-8 border-t border-gray-200 dark:border-gray-700/50">
+                   <!-- Disclaimer will be shown here initially -->
+            </div>
         </div>
-        <footer class="text-center mt-6 text-sm text-gray-500 dark:text-gray-400">
-            <p>&copy; 2025 University Portal. All Rights Reserved.</p>
+        <footer class="text-center mt-8 text-sm text-gray-500 dark:text-gray-400">
+            <p>&copy; Developed & Maintained by E-Cell, Sparrows Academy.</p>
         </footer>
     </div>
 
     <script>
-        // Store student data and full dataset globally
-        let currentStudent = {};
-        let allStudentData = [];
-        const sheetURL = "https://opensheet.elk.sh/1Sfrx9iH5b1-CipMJIQZJ8z61P1PUlgDPrSypfwY6aew/Sheet1";
+        let currentStudentResults = [];
+        // Removed `allStudentData` as it's now dynamically fetched based on class
+        // Base URL for Opensheet, without a specific sheet name at the end
+        const baseURL = "https://opensheet.elk.sh/1Sfrx9iH5b1-CipMJIQZJ8z61P1PUlgDPrSypfwY6aew/"; 
+        let userIPAddress = "Not available";
 
-        // --- ON PAGE LOAD ---
         document.addEventListener('DOMContentLoaded', () => {
             initializeTheme();
-            populateSubjects();
+            // We no longer fetchDataOnLoad() as data is fetched per class
+            fetchUserIP(); 
+            showDisclaimer(); 
         });
 
-        // --- FEATURE: Dark Mode Toggle ---
+        // Displays the initial disclaimer message in the result container
+        function showDisclaimer() {
+            const resultContainer = document.getElementById("resultContainer");
+            resultContainer.innerHTML = `
+                <div class="bg-yellow-50 dark:bg-yellow-900/50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-yellow-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 13a1 1 0 110-2 1 1 0 010 2zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-bold text-yellow-800 dark:text-yellow-200">Instructions & Disclaimer</h3>
+                            <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-100">
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li>Select your Class and enter your Roll Number to view your marksheet.</li>
+                                    <li>This is a provisional marksheet for informational purposes only.</li>
+                                    <li>For any discrepancies, please contact the school authorities.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Initializes the theme (dark/light mode) based on local storage or system preference
         function initializeTheme() {
             const themeToggleBtn = document.getElementById('theme-toggle');
+            if(!themeToggleBtn) return;
             const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
             const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
 
@@ -114,214 +161,344 @@
             themeToggleBtn.addEventListener('click', () => {
                 themeToggleDarkIcon.classList.toggle('hidden');
                 themeToggleLightIcon.classList.toggle('hidden');
-                if (localStorage.getItem('color-theme')) {
-                    if (localStorage.getItem('color-theme') === 'light') {
-                        document.documentElement.classList.add('dark');
-                        localStorage.setItem('color-theme', 'dark');
-                    } else {
-                        document.documentElement.classList.remove('dark');
-                        localStorage.setItem('color-theme', 'light');
-                    }
-                } else {
-                    if (document.documentElement.classList.contains('dark')) {
-                        document.documentElement.classList.remove('dark');
-                        localStorage.setItem('color-theme', 'light');
-                    } else {
-                        document.documentElement.classList.add('dark');
-                        localStorage.setItem('color-theme', 'dark');
-                    }
-                }
+                document.documentElement.classList.toggle('dark');
+                localStorage.setItem('color-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
             });
         }
 
-        // --- FEATURE: Dynamic Subject Loading ---
-        async function populateSubjects() {
-            const subjectSelect = document.getElementById('subject');
+        // Fetches the user's IP address and displays it
+        async function fetchUserIP() {
+            const ipDisplayElement = document.getElementById('user-ip-display');
             try {
-                const res = await fetch(sheetURL);
-                if (!res.ok) throw new Error("Network response was not ok");
-                allStudentData = await res.json();
-                
-                const subjects = [...new Set(allStudentData.map(row => row.Subject?.trim()).filter(Boolean))];
-                subjects.sort();
-
-                subjectSelect.innerHTML = '<option value="">-- Select Subject --</option>';
-                subjects.forEach(subject => {
-                    const option = document.createElement('option');
-                    option.value = subject;
-                    option.textContent = subject;
-                    subjectSelect.appendChild(option);
-                });
+                const response = await fetch('https://api.ipify.org?format=json');
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                userIPAddress = (await response.json()).ip;
+                ipDisplayElement.textContent = userIPAddress;
             } catch (error) {
-                console.error("Failed to load subjects:", error);
-                subjectSelect.innerHTML = '<option value="">-- Error Loading Subjects --</option>';
-                displayMessage('❗', 'Initialization Error', 'Could not load the list of subjects. Please refresh the page or check your connection.', 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
+                userIPAddress = "IP fetch failed";
+                ipDisplayElement.textContent = userIPAddress;
             }
         }
 
-        // --- Main Result Fetch Logic ---
-        function fetchResult() {
+        // Fetches and displays the result for the entered roll number and selected class
+        async function fetchResult() {
             const roll = document.getElementById("roll").value.trim();
-            const subject = document.getElementById("subject").value;
+            const selectedClass = document.getElementById("class-select").value; // Get selected class
 
-            if (!roll || !subject) {
-                displayMessage('⚠️', 'Heads up!', 'Please enter your Roll Number and select a Subject.', 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200');
+            if (!selectedClass) {
+                displayMessage('⚠️', 'Input Required', 'Please select a Class.', 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200');
                 return;
             }
 
-            displayLoader();
-            
-            // Use the pre-fetched data
-            const found = allStudentData.find(row =>
-                row["Roll Number"]?.trim().toLowerCase() === roll.toLowerCase() && 
-                row["Subject"]?.trim() === subject
-            );
+            if (!roll) {
+                displayMessage('⚠️', 'Input Required', 'Please enter your Roll Number.', 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200');
+                return;
+            }
 
-            // Using a short timeout to make the loader feel more natural
-            setTimeout(() => {
-                if (found) {
-                    currentStudent = found;
-                    displayResult(found);
-                } else {
-                    displayMessage('❌', 'Not Found', 'We couldn\'t find a result for the provided details. Please double-check and try again.', 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
+            displayLoader(); // Show loading indicator
+
+            try {
+                // Construct the dynamic URL for the selected class (sheet)
+                const dynamicSheetURL = baseURL + selectedClass;
+                const res = await fetch(dynamicSheetURL);
+                if (!res.ok) {
+                    throw new Error(`Could not load data for class "${selectedClass}". Please ensure the class name is correct.`);
                 }
-            }, 500);
+                const classSpecificData = await res.json();
+
+                // Now filter within the data for the selected class by roll number
+                const results = classSpecificData.filter(row => row["Roll Number"]?.trim().toLowerCase() === roll.toLowerCase());
+
+                if (results.length > 0) {
+                    const allMarksDeclared = results.every(subject => {
+                        const hasTheoryMarks = subject.Marks && subject.Marks.trim() !== '' && !isNaN(parseInt(subject.Marks.trim(), 10));
+                        // Assuming 'Marks' is the primary indicator of declaration
+                        return hasTheoryMarks;
+                    });
+
+                    if (allMarksDeclared) {
+                        currentStudentResults = results;
+                        displayFullMarksheet(results);
+                    } else {
+                        displayMessage('ℹ️', 'Result Not Declared Yet', `The result for Roll Number ${roll} in Class ${selectedClass} is not yet fully declared. Please check back later.`, 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200');
+                    }
+                } else {
+                    displayMessage('❌', 'Not Found', `We couldn't find any results for Roll Number ${roll} in Class ${selectedClass}. Please double-check the roll number and class selected.`, 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
+                }
+            } catch (error) {
+                console.error("Fetch Result Error:", error);
+                displayMessage('❗', 'Data Fetch Error', `An error occurred while fetching data: ${error.message}`, 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
+            }
         }
 
-        function displayResult(student) {
+        // Displays the full marksheet in the UI
+        function displayFullMarksheet(results) {
             const resultContainer = document.getElementById("resultContainer");
-            const marks = parseInt(student["Marks"]?.trim(), 10);
-            const { grade, remark, color } = getGradeAndRemark(marks);
+            const studentInfo = results[0];
+            const hasPracticalData = results.some(res => res["Practical Marks"] && res["Practical Marks"].trim() !== '' && !isNaN(parseInt(res["Practical Marks"].trim(), 10)));
+            let totalMarks = 0;
+            let maxMarks = 0;
+
+            const tableRows = results.map(subject => {
+                const theoryMarks = parseInt(subject["Marks"]?.trim(), 10) || null;
+                const practicalMarks = parseInt(subject["Practical Marks"]?.trim(), 10) || null;
+                // Only include rows where theory marks are available for calculation and display
+                if (theoryMarks === null) return '';
+
+                const subjectTotal = (theoryMarks || 0) + (practicalMarks || 0);
+                const { grade, remark, color } = getGradeAndRemark(subjectTotal);
+                totalMarks += subjectTotal;
+                maxMarks += 100; // Assuming each subject is out of 100
+
+                return `
+                    <tr class="border-b dark:border-gray-700/50">
+                        <td class="py-3 px-4 font-medium text-gray-900 dark:text-white">${subject.Subject}</td>
+                        <td class="py-3 px-4 text-center">${studentInfo.Class || 'N/A'}</td> <!-- Class visible on webpage table -->
+                        <td class="py-3 px-4 text-center">${theoryMarks}</td>
+                        ${hasPracticalData ? `<td class="py-3 px-4 text-center">${practicalMarks !== null ? practicalMarks : "N/A"}</td>` : ''}
+                        <td class="py-3 px-4 text-center font-semibold">${subjectTotal}</td>
+                        <td class="py-3 px-4 text-center"><span class="px-2 py-1 text-xs font-semibold rounded-full ${color.bg} ${color.text}">${grade}</span></td>
+                        <td class="py-3 px-4">${remark}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            const percentage = maxMarks > 0 ? ((totalMarks / maxMarks) * 100).toFixed(2) : 0;
+            const overallResultText = percentage >= 50 ? 'PASS' : 'FAIL';
+            const overallResultColor = percentage >= 50 ? 'text-green-500' : 'text-red-500';
 
             resultContainer.innerHTML = `
-                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Result Details</h3>
-                <div class="space-y-3">
-                    <div class="flex justify-between items-center text-sm p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"><span class="font-semibold text-gray-600 dark:text-gray-300">Roll Number:</span><span class="font-mono bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded">${student["Roll Number"]}</span></div>
-                    <div class="flex justify-between items-center text-sm p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"><span class="font-semibold text-gray-600 dark:text-gray-300">Name:</span><span class="text-gray-900 dark:text-white font-medium">${student["Name"]}</span></div>
-                    <div class="flex justify-between items-center text-sm p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"><span class="font-semibold text-gray-600 dark:text-gray-300">Subject:</span><span class="text-gray-900 dark:text-white font-medium">${student["Subject"]}</span></div>
-                    <div class="flex justify-between items-center text-sm p-3 ${color.bg} rounded-lg">
-                        <span class="font-semibold ${color.text}">Grade: <span class="font-bold text-lg">${grade}</span></span>
-                        <span class="font-semibold ${color.text}">Remark: <span class="font-bold">${remark}</span></span>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Provisional Marksheet</h3>
+                <div class="flex justify-between items-center bg-gray-100 dark:bg-gray-700/50 p-4 rounded-lg mb-4">
+                    <div>
+                        <p class="text-sm text-gray-600 dark:text-gray-300">Name</p>
+                        <p class="font-bold text-lg text-gray-900 dark:text-white">${studentInfo.Name}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600 dark:text-gray-300">Roll Number</p>
+                        <p class="font-mono bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded">${studentInfo["Roll Number"]}</p>
+                    </div>
+                    <div> <!-- Class display on webpage -->
+                        <p class="text-sm text-gray-600 dark:text-gray-300">Class</p>
+                        <p class="font-bold text-lg text-gray-900 dark:text-white">${studentInfo.Class || 'N/A'}</p>
+                    </div>
+                </div>
+                <div class="overflow-x-auto rounded-lg border dark:border-gray-700/50">
+                    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 result-table">
+                        <thead class="text-xs text-gray-700 uppercase dark:text-gray-400">
+                            <tr>
+                                <th scope="col" class="py-3 px-4">Subject</th>
+                                <th scope="col" class="py-3 px-4 text-center">Class</th> <!-- Class visible on webpage table header -->
+                                <th scope="col" class="py-3 px-4 text-center">Theory</th>
+                                ${hasPracticalData ? `<th scope="col" class="py-3 px-4 text-center">Practical</th>` : ''}
+                                <th scope="col" class="py-3 px-4 text-center">Total</th>
+                                <th scope="col" class="py-3 px-4 text-center">Grade</th>
+                                <th scope="col" class="py-3 px-4">Remark</th>
+                            </tr>
+                        </thead>
+                        <tbody>${tableRows}</tbody>
+                    </table>
+                </div>
+                <div class="mt-4 p-4 bg-blue-50 dark:bg-indigo-900/30 rounded-lg grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                    <div>
+                        <p class="text-sm text-blue-800 dark:text-indigo-200 font-semibold">TOTAL MARKS</p>
+                        <p class="text-2xl font-bold text-blue-900 dark:text-white">${totalMarks} / ${maxMarks}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-blue-800 dark:text-indigo-200 font-semibold">PERCENTAGE</p>
+                        <p class="text-2xl font-bold text-blue-900 dark:text-white">${percentage}%</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-blue-800 dark:text-indigo-200 font-semibold">OVERALL RESULT</p>
+                        <p class="text-2xl font-bold ${overallResultColor}">${overallResultText}</p>
                     </div>
                 </div>
                 <div class="mt-6 flex flex-col sm:flex-row gap-3">
-                    <button onclick="downloadPDF()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-all flex items-center justify-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>Download PDF</button>
+                    <button onclick="downloadFullMarksheetPDF()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-all flex items-center justify-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>Download Marks</button>
                     <button onclick="clearForm()" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-all">Check Another</button>
-                </div>
-            `;
+                </div>`;
         }
         
-        // --- UI & Utility Helpers ---
+        // Determines the grade, remark, and associated colors based on marks
         function getGradeAndRemark(marks) {
-            if (isNaN(marks)) return { grade: 'N/A', remark: 'Not Declared', color: { bg: 'bg-gray-100 dark:bg-gray-700', text: 'text-gray-800 dark:text-gray-200' } };
-            if (marks >= 90) return { grade: 'A+', remark: 'Outstanding', color: { bg: 'bg-green-100 dark:bg-green-900/50', text: 'text-green-800 dark:text-green-200' } };
-            if (marks >= 80) return { grade: 'A', remark: 'Excellent', color: { bg: 'bg-green-100 dark:bg-green-900/50', text: 'text-green-800 dark:text-green-200' } };
-            if (marks >= 70) return { grade: 'B', remark: 'Good', color: { bg: 'bg-blue-100 dark:bg-blue-900/50', text: 'text-blue-800 dark:text-blue-200' } };
-            if (marks >= 60) return { grade: 'C', remark: 'Satisfactory', color: { bg: 'bg-yellow-100 dark:bg-yellow-900/50', text: 'text-yellow-800 dark:text-yellow-200' } };
-            if (marks >= 50) return { grade: 'D', remark: 'Pass', color: { bg: 'bg-orange-100 dark:bg-orange-900/50', text: 'text-orange-800 dark:text-orange-200' } };
-            return { grade: 'F', remark: 'Fail', color: { bg: 'bg-red-100 dark:bg-red-900/50', text: 'text-red-800 dark:text-red-200' } };
+            if (marks === null || isNaN(marks)) return { grade: 'N/A', remark: 'Not Declared', color: { bg: 'bg-gray-200 dark:bg-gray-700', text: 'text-gray-800 dark:text-gray-200' } };
+            if (marks >= 90) return { grade: 'A+', remark: 'Outstanding', color: { bg: 'bg-green-100 dark:bg-green-800/30', text: 'text-green-800 dark:text-green-200' } };
+            if (marks >= 80) return { grade: 'A', remark: 'Excellent', color: { bg: 'bg-green-100 dark:bg-green-800/30', text: 'text-green-800 dark:text-green-200' } };
+            if (marks >= 70) return { grade: 'B', remark: 'Good', color: { bg: 'bg-blue-100 dark:bg-blue-800/30', text: 'text-blue-800 dark:text-blue-200' } };
+            if (marks >= 60) return { grade: 'C', remark: 'Satisfactory', color: { bg: 'bg-yellow-100 dark:bg-yellow-800/30', text: 'text-yellow-800 dark:text-yellow-200' } };
+            if (marks >= 50) return { grade: 'D', remark: 'Pass', color: { bg: 'bg-orange-100 dark:bg-orange-800/30', text: 'text-orange-800 dark:text-orange-200' } };
+            return { grade: 'F', remark: 'Fail', color: { bg: 'bg-red-100 dark:bg-red-800/30', text: 'text-red-800 dark:text-red-200' } };
         }
 
-        // --- FEATURE-RICH PDF DOWNLOAD ---
-        function downloadPDF() {
-            if (!currentStudent || !currentStudent["Roll Number"]) { 
-                displayMessage('!', 'Error', 'No result data to download!', 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
-                return; 
-            }
-
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            const pageWidth = doc.internal.pageSize.getWidth();
-            const pageHeight = doc.internal.pageSize.getHeight();
-            const margin = 10;
-
-            // --- Page Border ---
-            doc.setDrawColor(0, 32, 74); // Dark blue for border
-            doc.setLineWidth(1);
-            doc.rect(margin, margin, pageWidth - (2 * margin), pageHeight - (2 * margin));
-
-            // --- 1. Watermark ---
-            doc.setFontSize(72);
-            doc.setTextColor(230, 230, 230);
-            doc.setFont("helvetica", "bold");
-            doc.text("CONFIDENTIAL", pageWidth / 2, pageHeight / 2, { angle: -45, align: 'center' });
-
-            // --- 2. University Logo (SVG Placeholder) & Header ---
-            const startX = margin + 5;
-            let startY = margin + 10;
-            const logoSvg = `<svg width="100" height="100" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 12.75C12.4142 12.75 12.75 12.4142 12.75 12V3.75C12.75 3.33579 12.4142 3 12 3C11.5858 3 11.25 3.33579 11.25 3.75V12C11.25 12.4142 11.5858 12.75 12 12.75Z" fill="#0c4a6e"/><path d="M16.2019 14.5048C16.59 14.2141 17.1355 14.2889 17.4262 14.6778L20.5338 18.8907C20.8245 19.2796 20.7497 19.8251 20.3608 20.1158C19.9719 20.4065 19.4264 20.3317 19.1357 19.9428L16.0281 15.7299C15.7374 15.341 15.8121 14.7955 16.2019 14.5048Z" fill="#0c4a6e"/><path d="M7.79812 14.5048C7.41001 14.2141 6.86447 14.2889 6.57379 14.6778L3.46621 18.8907C3.17553 19.2796 3.25034 19.8251 3.63923 20.1158C4.02812 20.4065 4.57366 20.3317 4.86434 19.9428L7.97192 15.7299C8.26260 15.341 8.18789 14.7955 7.79812 14.5048Z" fill="#0c4a6e"/><path fill-rule="evenodd" clip-rule="evenodd" d="M12 21.75C17.3848 21.75 21.75 17.3848 21.75 12C21.75 6.61522 17.3848 2.25 12 2.25C6.61522 2.25 2.25 6.61522 2.25 12C2.25 17.3848 6.61522 21.75 12 21.75ZM12 20.25C16.5563 20.25 20.25 16.5563 20.25 12C20.25 7.44365 16.5563 3.75 12 3.75C7.44365 3.75 3.75 7.44365 3.75 12C3.75 16.5563 7.44365 20.25 12 20.25Z" fill="#0c4a6e"/></svg>`;
-            doc.addSvgAsImage(logoSvg, startX, startY, 25, 25);
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(22);
-            doc.setTextColor(0, 32, 74);
-            doc.text("Assam University", startX + 35, startY + 10);
-            doc.setFontSize(12);
-            doc.setFont("helvetica", "normal");
-            doc.setTextColor(100, 100, 100);
-            doc.text("Department of Law", startX + 35, startY + 18);
-            doc.text("Provisional Marksheet (Internal Assessment)", startX + 35, startY + 25);
-
-            // --- 3. Result Information Table ---
-            const marks = parseInt(currentStudent["Marks"]?.trim(), 10);
-            const { grade, remark } = getGradeAndRemark(marks);
-
-            const fields = [
-                ["Roll Number", currentStudent["Roll Number"]],
-                ["Full Name", currentStudent["Name"]],
-                ["Subject", currentStudent["Subject"]],
-                ["Marks Obtained (out of 100)", isNaN(marks) ? "N/A" : marks],
-                ["Grade", grade],
-                ["Remarks", remark]
-            ];
-            
-            startY = startY + 50;
-            doc.autoTable({
-                startY: startY,
-                head: [['Parameter', 'Details']],
-                body: fields,
-                theme: 'grid',
-                headStyles: { fillColor: [0, 32, 74] },
-                styles: { fontSize: 11, cellPadding: 3 },
-                columnStyles: { 0: { fontStyle: 'bold' } },
-                margin: { left: startX, right: margin }
+        // Loads an image from a URL and converts it to Base64
+        async function loadImageAsBase64(url) {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', url);
+                xhr.responseType = 'blob';
+                xhr.onload = () => {
+                    if (xhr.status === 200) {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result);
+                        reader.onerror = () => reject(new Error('FileReader error.'));
+                        reader.readAsDataURL(xhr.response);
+                    } else reject(new Error(`HTTP error ${xhr.status}.`));
+                };
+                xhr.onerror = () => reject(new Error('Network error.'));
+                xhr.send();
             });
-
-            // --- 4. QR Code for Verification ---
-            const qrYPosition = doc.autoTable.previous.finalY ? doc.autoTable.previous.finalY + 15 : startY + 80; 
-            const qrString = `Roll: ${currentStudent["Roll Number"]}, Name: ${currentStudent["Name"]}, Subject: ${currentStudent["Subject"]}, Marks: ${isNaN(marks) ? "N/A" : marks}, Grade: ${grade}`;
-            const qr = qrcode(0, 'L');
-            qr.addData(qrString);
-            qr.make();
-            const qrImgData = qr.createDataURL(4);
-            doc.addImage(qrImgData, 'PNG', startX, qrYPosition, 40, 40);
-
-            // --- 5. Footer & Declarations ---
-            const finalY = Math.max(doc.autoTable.previous.finalY, qrYPosition + 40);
-            doc.setFontSize(10);
-            doc.setTextColor(100, 100, 100);
-            doc.text(`Date of Declaration: ${new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}`, startX, finalY + 15);
-            doc.text("This is a computer-generated document. No signature is required.", startX, finalY + 20);
-            
-            const signatureX = pageWidth - margin - 50;
-            doc.setLineWidth(0.5);
-            doc.line(signatureX, finalY + 40, signatureX + 45, finalY + 40);
-            doc.text("Controller of Examinations", signatureX + 22.5, finalY + 45, {align: 'center'});
-
-            doc.save(`${currentStudent["Roll Number"]}_${currentStudent["Subject"]}_Result.pdf`);
         }
         
-        // Helper functions
-        function displayLoader() {
-            document.getElementById("resultContainer").innerHTML = `<div class="flex flex-col items-center justify-center text-center p-4"><svg class="animate-spin h-8 w-8 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><p class="mt-3 text-lg font-semibold text-gray-700 dark:text-gray-300">Fetching Your Result...</p><p class="text-sm text-gray-500 dark:text-gray-400">Please wait a moment.</p></div>`;
+        // Downloads the full marksheet as a PDF
+        async function downloadFullMarksheetPDF() {
+            // Check if there is data to download
+            if (currentStudentResults.length === 0) { displayMessage('!', 'Error', 'No data to download!', 'bg-red-100 text-red-800'); return; }
+            try {
+                const studentInfo = currentStudentResults[0];
+                if (!studentInfo) throw new Error("Student data missing.");
+
+                const hasPracticalData = currentStudentResults.some(res => res["Practical Marks"] && res["Practical Marks"].trim() !== '' && !isNaN(parseInt(res["Practical Marks"].trim(), 10)));
+                let totalActualMarks = 0;
+                let totalPossibleMarks = 0;
+
+                // Prepare table body data for jsPDF autoTable
+                const tableBody = currentStudentResults.map(res => {
+                    const theoryMarks = parseInt(res.Marks?.trim()) || null;
+                    const practicalMarks = parseInt(res["Practical Marks"]?.trim(), 10) || null;
+                    if (theoryMarks === null) return null; // Skip rows without theory marks
+                    const subjectTotal = (theoryMarks || 0) + (practicalMarks || 0);
+                    const { grade, remark } = getGradeAndRemark(subjectTotal);
+                    totalActualMarks += subjectTotal;
+                    totalPossibleMarks += 100; // Each subject is out of 100
+                    // Removed subject.Class from the row array for the PDF table
+                    const row = [res.Subject, theoryMarks];
+                    if (hasPracticalData) row.push(practicalMarks ?? "N/A"); // Add practical column if present
+                    row.push(subjectTotal, grade, remark);
+                    return row;
+                }).filter(Boolean); // Filter out nulls
+
+                const percentage = totalPossibleMarks > 0 ? ((totalActualMarks / totalPossibleMarks) * 100).toFixed(2) : 0;
+                const overallResult = percentage >= 50 ? 'PASS' : 'FAIL';
+                
+                // Load images for the PDF header and footer
+                const [logoDataUrl, signatureDataUrl] = await Promise.all([
+                    loadImageAsBase64('https://upscaspirantmzr.github.io/result/Logo.png'),
+                    loadImageAsBase64('https://upscaspirantmzr.github.io/result/Sign.jpg')
+                ]);
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const { width: pageWidth, height: pageHeight } = doc.internal.pageSize;
+                const margin = 10;
+                let currentY = margin;
+
+                // Add a border around the page
+                doc.setDrawColor(0, 32, 74); // Dark blue for the border
+                doc.setLineWidth(0.5);
+                doc.rect(margin / 2, margin / 2, pageWidth - margin, pageHeight - margin);
+                
+                // Add university logo and title
+                currentY += 10;
+                doc.addImage(logoDataUrl, 'PNG', margin + 5, currentY, 25, 25);
+                doc.setFont("helvetica", "bold").setFontSize(22).setTextColor(0, 32, 74).text("Mzr University", margin + 35, currentY + 8);
+                doc.setFont("helvetica", "normal").setFontSize(12).setTextColor(100).text("Provisional Marksheet (Internal Assessment)", margin + 35, currentY + 16);
+                
+                // Add QR code
+                const qrString = `Roll: ${studentInfo["Roll Number"]}, Name: ${studentInfo.Name}, Class: ${studentInfo.Class || 'N/A'}, IP: ${userIPAddress}`;
+                const qr = qrcode(0, 'L'); qr.addData(qrString); qr.make();
+                doc.addImage(qr.createDataURL(4), 'PNG', pageWidth - margin - 35, currentY, 30, 30);
+                
+                currentY += 40; // Move Y position after header
+
+                // --- Manual Student Info (without dashed underline) ---
+                const infoLeftX = margin + 5;
+                const infoRightX = infoLeftX + 35; // X position for the values
+                doc.setFontSize(11);
+
+                // Name
+                doc.setFont("helvetica", "bold").text("Full Name:", infoLeftX, currentY);
+                doc.setFont("helvetica", "normal").text(studentInfo.Name, infoRightX, currentY);
+
+                currentY += 8;
+
+                // Roll Number
+                doc.setFont("helvetica", "bold").text("Roll Number:", infoLeftX, currentY);
+                doc.setFont("helvetica", "normal").text(studentInfo["Roll Number"], infoRightX, currentY);
+                
+                currentY += 8; // Move Y position down for Class
+
+                // Class
+                doc.setFont("helvetica", "bold").text("Class:", infoLeftX, currentY);
+                doc.setFont("helvetica", "normal").text(studentInfo.Class || 'N/A', infoRightX, currentY);
+
+                currentY += 10; // Space after info section
+
+                // Add the marks table
+                // Removed 'Class' from tableHead for the PDF table
+                const tableHead = [['Subject', 'Theory']];
+                if (hasPracticalData) tableHead[0].push('Practical');
+                tableHead[0].push('Total', 'Grade', 'Remarks');
+
+                doc.autoTable({
+                    startY: currentY, head: tableHead, body: tableBody, theme: 'grid',
+                    headStyles: { fillColor: [22, 110, 160], textColor: 255 }, // Header row styling
+                    styles: { fontSize: 10, cellPadding: 3, halign: 'center' }, // General cell styling
+                    // Adjusted columnStyles as 'Class' column is removed (now index 0 is Subject, not 1)
+                    columnStyles: { 0: { halign: 'left' }, [tableHead[0].length -1]: { halign: 'left' } },
+                    margin: { left: margin, right: margin }
+                });
+                currentY = doc.autoTable.previous.finalY; // Update Y position after table
+
+                // Add totals summary table (right aligned)
+                const totalsTableWidth = 85;
+                doc.autoTable({
+                    startY: currentY + 2, body: [
+                        ['Total Marks', `${totalActualMarks} / ${totalPossibleMarks}`],
+                        ['Percentage', `${percentage}%`],
+                        ['Overall Result', { content: overallResult, styles: { textColor: percentage >= 50 ? [0, 128, 0] : [255, 0, 0] }}]
+                    ], theme: 'grid', tableWidth: totalsTableWidth,
+                    margin: { left: pageWidth - margin - totalsTableWidth }, // Position table to the right
+                    styles: { cellPadding: 3, fontSize: 11 },
+                    columnStyles: { 0: { fontStyle: 'bold', halign: 'right' }, 1: { fontStyle: 'bold' } }
+                });
+                
+                // Add footer with signature, IP address, and disclaimer
+                const footerY = pageHeight - margin - 20;
+                const signatureImageHeight = 15, signatureImageWidth = 40;
+                const signatureX = pageWidth - margin - signatureImageWidth;
+                doc.addImage(signatureDataUrl, 'JPEG', signatureX, footerY - signatureImageHeight, signatureImageWidth, signatureImageHeight);
+                doc.setLineWidth(0.3).line(signatureX, footerY + 2, signatureX + signatureImageWidth, footerY + 2); // Signature line
+                doc.setFontSize(10).setTextColor(100).text("Head of Department", signatureX + signatureImageWidth / 2, footerY + 7, { align: 'center' });
+
+                // Changed: Added IP address to the generated info in the footer
+                doc.setFontSize(9).setTextColor(150).text(`Generated: ${new Date().toLocaleString('en-IN')} | IP: ${userIPAddress}`, margin, footerY);
+                doc.setFont("helvetica", "italic").text("This is a computer-generated document.", margin, footerY + 5);
+                
+                // Save the PDF
+                doc.save(`${studentInfo["Roll Number"]}_Marksheet.pdf`);
+
+            } catch (error) {
+                console.error("PDF Generation Error:", error);
+                displayMessage('❗', 'PDF Generation Failed', `An error occurred: ${error.message}.`, 'bg-red-100 text-red-800');
+            }
         }
+        
+        // Displays a loading spinner and message
+        function displayLoader() {
+            document.getElementById("resultContainer").innerHTML = `<div class="flex flex-col items-center justify-center text-center p-8"><svg class="animate-spin h-8 w-8 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><p class="mt-4 text-lg font-semibold text-gray-700 dark:text-gray-300">Fetching Your Marksheet...</p></div>`;
+        }
+        
+        // Displays a general message with an icon, title, and message
         function displayMessage(icon, title, message, colorClasses) {
             document.getElementById("resultContainer").innerHTML = `<div class="rounded-lg p-4 ${colorClasses}"><div class="flex"><div class="flex-shrink-0 text-2xl">${icon}</div><div class="ml-3"><h3 class="text-sm font-bold">${title}</h3><div class="text-sm mt-1">${message}</div></div></div></div>`;
         }
+        
+        // Clears the form and shows the disclaimer again
         function clearForm() {
             document.getElementById("roll").value = "";
-            document.getElementById("subject").value = "";
-            document.getElementById("resultContainer").innerHTML = "";
-            currentStudent = {};
+            document.getElementById("class-select").value = ""; // Clear the class selection
+            showDisclaimer();
+            currentStudentResults = [];
         }
 
     </script>
