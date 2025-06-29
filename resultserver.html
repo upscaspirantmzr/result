@@ -101,7 +101,7 @@
             </div>
         </div>
         <footer class="text-center mt-8 text-sm text-gray-500 dark:text-gray-400">
-            <p>&copy; Devloped & Maintained by E-Cell, Sparrows Academy.</p>
+            <p>&copy; Developed & Maintained by E-Cell, Sparrows Academy.</p>
         </footer>
     </div>
 
@@ -202,7 +202,7 @@
                 const dynamicSheetURL = baseURL + selectedClass;
                 const res = await fetch(dynamicSheetURL);
                 if (!res.ok) {
-                    throw new Error(`Could not load data for class "${selectedClass}". Please ensure the class name is correct and the Google Sheet tab exists.`);
+                    throw new Error(`Could not load data for class "${selectedClass}". Please ensure the class name is correct.`);
                 }
                 const classSpecificData = await res.json();
 
