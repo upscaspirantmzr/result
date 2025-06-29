@@ -57,12 +57,14 @@
 </head>
 <body class="transition-all">
 
+    <!-- Theme Toggle Button -->
     <button id="theme-toggle" type="button" class="fixed top-4 right-4 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 z-50">
         <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8 0 1010.586 10.586z"></path></svg>
         <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
     </button>
 
-    <div class="w-full max-w-3xl mx-auto min-h-screen flex flex-col justify-center items-center p-4">
+    <!-- Main Result Portal View -->
+    <div id="main-portal-view" class="w-full max-w-3xl mx-auto min-h-screen flex flex-col justify-center items-center p-4">
         <div class="w-full bg-white dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl main-card border border-gray-200 dark:border-gray-700/50 overflow-hidden">
             <div class="p-8 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-700 dark:to-indigo-800 text-white text-center animated-gradient">
                 <div class="flex justify-center items-center gap-4">
@@ -80,7 +82,6 @@
                         <option value="Class 7">Class 7</option>
                         <option value="Class 8">Class 8</option>
                         <option value="Class 9">Class 9</option>
-                    
                     </select>
                 </div>
                 <div>
@@ -90,14 +91,47 @@
                 <button onclick="fetchResult()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800 transform hover:scale-105">
                     Get Full Marksheet
                 </button>
-                   <div class="pt-4 text-center">
-                       <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Your IP Address for Verification</p>
-                       <p id="user-ip-display" class="font-mono text-sm font-semibold text-gray-700 dark:text-gray-300 mt-1">Loading...</p>
-                   </div>
+                <div class="pt-4 text-center">
+                    <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Your IP Address for Verification</p>
+                    <p id="user-ip-display" class="font-mono text-sm font-semibold text-gray-700 dark:text-gray-300 mt-1">Loading...</p>
+                </div>
+            </div>
+
+            <!-- News and Announcements Section -->
+            <div id="announcementsSection" class="p-6 md:p-8 border-t border-gray-200 dark:border-gray-700/50">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">News & Announcements</h3>
+                <div class="bg-blue-50 dark:bg-blue-900/50 p-4 rounded-lg space-y-3 max-h-48 overflow-y-auto no-scrollbar">
+                    <div class="flex items-start">
+                        <svg class="flex-shrink-0 w-5 h-5 text-blue-600 dark:text-blue-300 mt-1 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
+                        <div>
+                            <p class="text-sm font-semibold text-blue-800 dark:text-blue-200">Exam Results to be Declared Soon!</p>
+                            <p class="text-xs text-blue-700 dark:text-blue-100">Anticipated release on [Date], stay tuned!</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <svg class="flex-shrink-0 w-5 h-5 text-blue-600 dark:text-blue-300 mt-1 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
+                        <div>
+                            <p class="text-sm font-semibold text-blue-800 dark:text-blue-200">Parent-Teacher Meeting on 15th August</p>
+                            <p class="text-xs text-blue-700 dark:text-blue-100">All parents are requested to attend.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <svg class="flex-shrink-0 w-5 h-5 text-blue-600 dark:text-blue-300 mt-1 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
+                        <div>
+                            <p class="text-sm font-semibold text-blue-800 dark:text-blue-200">Summer Vacations from 1st June</p>
+                            <p class="text-xs text-blue-700 dark:text-blue-100">Enjoy your holidays!</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div id="resultContainer" class="p-6 md:p-8 border-t border-gray-200 dark:border-gray-700/50">
                    <!-- Disclaimer will be shown here initially -->
+            </div>
+            <div class="p-6 md:p-8 border-t border-gray-200 dark:border-gray-700/50 flex justify-center">
+                <button onclick="showAnalyticsPage()" class="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-700 dark:focus:ring-offset-gray-800">
+                    Admin Analytics
+                </button>
             </div>
         </div>
         <footer class="text-center mt-8 text-sm text-gray-500 dark:text-gray-400">
@@ -105,19 +139,54 @@
         </footer>
     </div>
 
+    <!-- Admin Analytics View (initially hidden) -->
+    <div id="analytics-view" class="hidden w-full max-w-3xl mx-auto min-h-screen flex flex-col justify-center items-center p-4">
+        <div class="w-full bg-white dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl main-card border border-gray-200 dark:border-gray-700/50 overflow-hidden">
+            <div class="p-8 bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-700 dark:to-pink-800 text-white text-center animated-gradient">
+                <h1 class="text-3xl font-extrabold tracking-tight">Admin Analytics Dashboard</h1>
+                <p class="text-purple-200 mt-2">Overall school performance insights</p>
+            </div>
+            <div id="analyticsContent" class="p-6 md:p-8 space-y-4">
+                <!-- Analytics data will be rendered here -->
+                <div class="flex flex-col items-center justify-center text-center p-8">
+                    <svg class="animate-spin h-8 w-8 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <p class="mt-4 text-lg font-semibold text-gray-700 dark:text-gray-300">Loading Analytics Data...</p>
+                </div>
+            </div>
+            <div class="p-6 md:p-8 border-t border-gray-200 dark:border-gray-700/50 flex justify-center">
+                <button onclick="switchView('main-portal-view')" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800">
+                    Back to Result Portal
+                </button>
+            </div>
+        </div>
+        <footer class="text-center mt-8 text-sm text-gray-500 dark:text-gray-400">
+            <p>&copy; Developed & Maintained by E-Cell, Sparrows Academy.</p>
+        </footer>
+    </div>
+
+
     <script>
         let currentStudentResults = [];
-        // Removed `allStudentData` as it's now dynamically fetched based on class
         // Base URL for Opensheet, without a specific sheet name at the end
         const baseURL = "https://opensheet.elk.sh/1Sfrx9iH5b1-CipMJIQZJ8z61P1PUlgDPrSypfwY6aew/"; 
         let userIPAddress = "Not available";
+        const ADMIN_PASSWORD = "admin"; // Client-side placeholder password. Not secure!
+
+        // Array of classes to fetch data for analytics
+        const CLASSES = ["Class 7", "Class 8", "Class 9"];
 
         document.addEventListener('DOMContentLoaded', () => {
             initializeTheme();
-            // We no longer fetchDataOnLoad() as data is fetched per class
             fetchUserIP(); 
             showDisclaimer(); 
         });
+
+        // Function to switch between different views (main portal, analytics)
+        function switchView(viewId) {
+            document.getElementById('main-portal-view').classList.add('hidden');
+            document.getElementById('analytics-view').classList.add('hidden');
+            document.getElementById(viewId).classList.remove('hidden');
+        }
 
         // Displays the initial disclaimer message in the result container
         function showDisclaimer() {
@@ -253,7 +322,6 @@
                 return `
                     <tr class="border-b dark:border-gray-700/50">
                         <td class="py-3 px-4 font-medium text-gray-900 dark:text-white">${subject.Subject}</td>
-                        <td class="py-3 px-4 text-center">${studentInfo.Class || 'N/A'}</td> <!-- Class visible on webpage table -->
                         <td class="py-3 px-4 text-center">${theoryMarks}</td>
                         ${hasPracticalData ? `<td class="py-3 px-4 text-center">${practicalMarks !== null ? practicalMarks : "N/A"}</td>` : ''}
                         <td class="py-3 px-4 text-center font-semibold">${subjectTotal}</td>
@@ -288,7 +356,6 @@
                         <thead class="text-xs text-gray-700 uppercase dark:text-gray-400">
                             <tr>
                                 <th scope="col" class="py-3 px-4">Subject</th>
-                                <th scope="col" class="py-3 px-4 text-center">Class</th> <!-- Class visible on webpage table header -->
                                 <th scope="col" class="py-3 px-4 text-center">Theory</th>
                                 ${hasPracticalData ? `<th scope="col" class="py-3 px-4 text-center">Practical</th>` : ''}
                                 <th scope="col" class="py-3 px-4 text-center">Total</th>
@@ -370,7 +437,8 @@
                     const { grade, remark } = getGradeAndRemark(subjectTotal);
                     totalActualMarks += subjectTotal;
                     totalPossibleMarks += 100; // Each subject is out of 100
-                    // Removed subject.Class from the row array for the PDF table
+                    
+                    // Removed studentInfo.Class from the row array for the PDF table
                     const row = [res.Subject, theoryMarks];
                     if (hasPracticalData) row.push(practicalMarks ?? "N/A"); // Add practical column if present
                     row.push(subjectTotal, grade, remark);
@@ -434,7 +502,7 @@
                 currentY += 10; // Space after info section
 
                 // Add the marks table
-                // Removed 'Class' from tableHead for the PDF table
+                // Removed Class column from the PDF table head
                 const tableHead = [['Subject', 'Theory']];
                 if (hasPracticalData) tableHead[0].push('Practical');
                 tableHead[0].push('Total', 'Grade', 'Remarks');
@@ -443,7 +511,7 @@
                     startY: currentY, head: tableHead, body: tableBody, theme: 'grid',
                     headStyles: { fillColor: [22, 110, 160], textColor: 255 }, // Header row styling
                     styles: { fontSize: 10, cellPadding: 3, halign: 'center' }, // General cell styling
-                    // Adjusted columnStyles as 'Class' column is removed (now index 0 is Subject, not 1)
+                    // Adjusted columnStyles for PDF now that 'Class' column (index 1) is removed
                     columnStyles: { 0: { halign: 'left' }, [tableHead[0].length -1]: { halign: 'left' } },
                     margin: { left: margin, right: margin }
                 });
@@ -484,13 +552,31 @@
         }
         
         // Displays a loading spinner and message
-        function displayLoader() {
-            document.getElementById("resultContainer").innerHTML = `<div class="flex flex-col items-center justify-center text-center p-8"><svg class="animate-spin h-8 w-8 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><p class="mt-4 text-lg font-semibold text-gray-700 dark:text-gray-300">Fetching Your Marksheet...</p></div>`;
+        function displayLoader(targetElementId = "resultContainer", message = "Fetching Your Marksheet...", spinnerColor = "text-indigo-600") {
+            document.getElementById(targetElementId).innerHTML = `
+                <div class="flex flex-col items-center justify-center text-center p-8">
+                    <svg class="animate-spin h-8 w-8 ${spinnerColor}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p class="mt-4 text-lg font-semibold text-gray-700 dark:text-gray-300">${message}</p>
+                </div>
+            `;
         }
         
         // Displays a general message with an icon, title, and message
-        function displayMessage(icon, title, message, colorClasses) {
-            document.getElementById("resultContainer").innerHTML = `<div class="rounded-lg p-4 ${colorClasses}"><div class="flex"><div class="flex-shrink-0 text-2xl">${icon}</div><div class="ml-3"><h3 class="text-sm font-bold">${title}</h3><div class="text-sm mt-1">${message}</div></div></div></div>`;
+        function displayMessage(icon, title, message, colorClasses, targetElementId = "resultContainer") {
+            document.getElementById(targetElementId).innerHTML = `
+                <div class="rounded-lg p-4 ${colorClasses}">
+                    <div class="flex">
+                        <div class="flex-shrink-0 text-2xl">${icon}</div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-bold">${title}</h3>
+                            <div class="text-sm mt-1">${message}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
         
         // Clears the form and shows the disclaimer again
@@ -499,6 +585,176 @@
             document.getElementById("class-select").value = ""; // Clear the class selection
             showDisclaimer();
             currentStudentResults = [];
+        }
+
+        // --- Admin Analytics Functions ---
+
+        // Shows the analytics page after a basic password check
+        async function showAnalyticsPage() {
+            const password = prompt("Please enter admin password:");
+            if (password === ADMIN_PASSWORD) {
+                switchView('analytics-view');
+                displayLoader("analyticsContent", "Generating Analytics Report...", "text-purple-600");
+                try {
+                    const allClassData = await fetchOverallData();
+                    generateAnalyticsReport(allClassData);
+                } catch (error) {
+                    console.error("Analytics Data Fetch Error:", error);
+                    displayMessage('❗', 'Analytics Error', `Failed to load analytics data: ${error.message}`, 'bg-red-100 text-red-800', "analyticsContent");
+                }
+            } else if (password !== null) { // User didn't cancel
+                displayMessage('❌', 'Access Denied', 'Incorrect password.', 'bg-red-100 text-red-800', "analyticsContent");
+                alert("Incorrect password!"); // Use a real modal in a production app
+            }
+        }
+
+        // Fetches data for all defined classes concurrently
+        async function fetchOverallData() {
+            const fetchPromises = CLASSES.map(className => 
+                fetch(baseURL + className)
+                    .then(res => {
+                        if (!res.ok) throw new Error(`HTTP error! Status: ${res.status} for ${className}`);
+                        return res.json();
+                    })
+                    .then(data => data.map(student => ({ ...student, Class: className }))) // Add class to each student object
+                    .catch(error => {
+                        console.error(`Error fetching data for ${className}:`, error);
+                        return []; // Return empty array on error for that class
+                    })
+            );
+            const allResults = await Promise.all(fetchPromises);
+            return [].concat(...allResults); // Flatten the array of arrays into a single array
+        }
+
+        // Generates and displays the analytics report
+        function generateAnalyticsReport(allStudentData) {
+            const analyticsContentDiv = document.getElementById("analyticsContent");
+            if (!allStudentData || allStudentData.length === 0) {
+                displayMessage('ℹ️', 'No Data', 'No student data available for analytics.', 'bg-yellow-100 text-yellow-800', "analyticsContent");
+                return;
+            }
+
+            let totalStudents = 0;
+            let passedStudents = 0;
+            const classWiseData = {};
+            const gradeCounts = { 'A+': 0, 'A': 0, 'B': 0, 'C': 0, 'D': 0, 'F': 0 };
+            const studentPercentages = []; // Store { name, roll, class, percentage } for top performers
+
+            allStudentData.forEach(student => {
+                const studentClass = student.Class || 'N/A';
+                if (!classWiseData[studentClass]) {
+                    classWiseData[studentClass] = { total: 0, passed: 0, totalMarks: 0, totalPossibleMarks: 0 };
+                }
+
+                totalStudents++;
+                classWiseData[studentClass].total++;
+
+                let studentTotalMarks = 0;
+                let studentMaxMarks = 0;
+
+                // Assuming 'Marks' is the primary field for calculation, and we treat each subject as 100 marks
+                // Filter only valid subjects with declared marks
+                const validSubjects = allStudentData.filter(s => 
+                    s["Roll Number"] === student["Roll Number"] && 
+                    s.Marks && s.Marks.trim() !== '' && !isNaN(parseInt(s.Marks.trim(), 10))
+                );
+
+                validSubjects.forEach(subject => {
+                    const theoryMarks = parseInt(subject.Marks?.trim(), 10) || 0;
+                    const practicalMarks = parseInt(subject["Practical Marks"]?.trim(), 10) || 0;
+                    const subjectTotal = theoryMarks + practicalMarks;
+                    studentTotalMarks += subjectTotal;
+                    studentMaxMarks += 100; // Each subject is assumed to be out of 100
+                });
+
+                const percentage = studentMaxMarks > 0 ? ((studentTotalMarks / studentMaxMarks) * 100) : 0;
+                
+                // Add student to percentages array for top performers
+                studentPercentages.push({
+                    name: student.Name,
+                    roll: student["Roll Number"],
+                    class: student.Class,
+                    percentage: parseFloat(percentage.toFixed(2))
+                });
+
+                if (percentage >= 50) { // Assuming 50% for pass
+                    passedStudents++;
+                    classWiseData[studentClass].passed++;
+                }
+
+                // Calculate grade for the overall student percentage
+                const { grade } = getGradeAndRemark(percentage);
+                if (gradeCounts[grade]) {
+                    gradeCounts[grade]++;
+                } else {
+                    // Handle cases like 'N/A' grade if marks are not declared for a student
+                    // Although the check for allMarksDeclared should prevent this in the main view
+                    // For analytics, we assume all data fetched is declared.
+                }
+
+                classWiseData[studentClass].totalMarks += studentTotalMarks;
+                classWiseData[studentClass].totalPossibleMarks += studentMaxMarks;
+            });
+
+            const overallPassRate = totalStudents > 0 ? ((passedStudents / totalStudents) * 100).toFixed(2) : 0;
+
+            let classAnalyticsHtml = '';
+            for (const className in classWiseData) {
+                const data = classWiseData[className];
+                const classPassRate = data.total > 0 ? ((data.passed / data.total) * 100).toFixed(2) : 0;
+                const classAverageMarks = data.totalPossibleMarks > 0 ? (data.totalMarks / data.totalPossibleMarks * 100).toFixed(2) : 0;
+                classAnalyticsHtml += `
+                    <div class="bg-gray-100 dark:bg-gray-700/50 p-4 rounded-lg">
+                        <h4 class="font-bold text-lg text-gray-900 dark:text-white">${className}</h4>
+                        <p class="text-gray-700 dark:text-gray-300">Total Students: ${data.total}</p>
+                        <p class="text-gray-700 dark:text-gray-300">Passed: ${data.passed} (${classPassRate}%)</p>
+                        <p class="text-gray-700 dark:text-gray-300">Average Percentage: ${classAverageMarks}%</p>
+                    </div>
+                `;
+            }
+
+            let gradeDistributionHtml = '';
+            for (const grade in gradeCounts) {
+                if (gradeCounts[grade] > 0) {
+                    gradeDistributionHtml += `<p class="text-gray-700 dark:text-gray-300">${grade}: ${gradeCounts[grade]} students</p>`;
+                }
+            }
+
+            const topPerformers = studentPercentages.sort((a, b) => b.percentage - a.percentage).slice(0, 5);
+            let topPerformersHtml = '';
+            if (topPerformers.length > 0) {
+                topPerformersHtml = '<h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2 mt-4">Top Performers (Overall)</h3><ul class="list-disc list-inside space-y-1">';
+                topPerformers.forEach((s, index) => {
+                    topPerformersHtml += `<li>${index + 1}. ${s.name} (${s.roll}, ${s.class}) - ${s.percentage}%</li>`;
+                });
+                topPerformersHtml += '</ul>';
+            }
+
+
+            analyticsContentDiv.innerHTML = `
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Overall Summary</h3>
+                <div class="p-4 bg-purple-50 dark:bg-purple-900/30 rounded-lg grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
+                    <div>
+                        <p class="text-sm text-purple-800 dark:text-purple-200 font-semibold">TOTAL STUDENTS</p>
+                        <p class="text-2xl font-bold text-purple-900 dark:text-white">${totalStudents}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-purple-800 dark:text-purple-200 font-semibold">OVERALL PASS RATE</p>
+                        <p class="text-2xl font-bold text-green-700 dark:text-green-300">${overallPassRate}%</p>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2 mt-4">Class-wise Breakdown</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    ${classAnalyticsHtml}
+                </div>
+
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2 mt-4">Grade Distribution</h3>
+                <div class="bg-gray-100 dark:bg-gray-700/50 p-4 rounded-lg">
+                    ${gradeDistributionHtml}
+                </div>
+                ${topPerformersHtml}
+            `;
         }
 
     </script>
