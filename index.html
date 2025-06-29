@@ -253,7 +253,6 @@
                 return `
                     <tr class="border-b dark:border-gray-700/50">
                         <td class="py-3 px-4 font-medium text-gray-900 dark:text-white">${subject.Subject}</td>
-                        <td class="py-3 px-4 text-center">${studentInfo.Class || 'N/A'}</td> <!-- Class visible on webpage table -->
                         <td class="py-3 px-4 text-center">${theoryMarks}</td>
                         ${hasPracticalData ? `<td class="py-3 px-4 text-center">${practicalMarks !== null ? practicalMarks : "N/A"}</td>` : ''}
                         <td class="py-3 px-4 text-center font-semibold">${subjectTotal}</td>
@@ -288,7 +287,7 @@
                         <thead class="text-xs text-gray-700 uppercase dark:text-gray-400">
                             <tr>
                                 <th scope="col" class="py-3 px-4">Subject</th>
-                                <th scope="col" class="py-3 px-4 text-center">Class</th> <!-- Class visible on webpage table header -->
+                                <!-- Removed Class column from webpage table as it's in the header -->
                                 <th scope="col" class="py-3 px-4 text-center">Theory</th>
                                 ${hasPracticalData ? `<th scope="col" class="py-3 px-4 text-center">Practical</th>` : ''}
                                 <th scope="col" class="py-3 px-4 text-center">Total</th>
@@ -370,7 +369,8 @@
                     const { grade, remark } = getGradeAndRemark(subjectTotal);
                     totalActualMarks += subjectTotal;
                     totalPossibleMarks += 100; // Each subject is out of 100
-                    // Removed subject.Class from the row array for the PDF table
+                    
+                    // Removed studentInfo.Class from the row array for the PDF table
                     const row = [res.Subject, theoryMarks];
                     if (hasPracticalData) row.push(practicalMarks ?? "N/A"); // Add practical column if present
                     row.push(subjectTotal, grade, remark);
@@ -434,7 +434,7 @@
                 currentY += 10; // Space after info section
 
                 // Add the marks table
-                // Removed 'Class' from tableHead for the PDF table
+                // Removed Class column from the PDF table head
                 const tableHead = [['Subject', 'Theory']];
                 if (hasPracticalData) tableHead[0].push('Practical');
                 tableHead[0].push('Total', 'Grade', 'Remarks');
@@ -443,7 +443,7 @@
                     startY: currentY, head: tableHead, body: tableBody, theme: 'grid',
                     headStyles: { fillColor: [22, 110, 160], textColor: 255 }, // Header row styling
                     styles: { fontSize: 10, cellPadding: 3, halign: 'center' }, // General cell styling
-                    // Adjusted columnStyles as 'Class' column is removed (now index 0 is Subject, not 1)
+                    // Adjusted columnStyles for PDF now that 'Class' column (index 1) is removed
                     columnStyles: { 0: { halign: 'left' }, [tableHead[0].length -1]: { halign: 'left' } },
                     margin: { left: margin, right: margin }
                 });
