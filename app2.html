@@ -79,6 +79,14 @@
                     <label for="roll" class="text-sm font-medium text-gray-300">Student ID (Roll Number)</label>
                     <input type="text" id="roll" placeholder="e.g., 21CS001" class="mt-2 block w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-gray-200 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all">
                 </div>
+
+                <!-- Math Captcha Section -->
+                <div>
+                    <label for="captcha-answer" class="text-sm font-medium text-gray-300" id="captcha-question">What is X + Y = ?</label>
+                    <input type="text" id="captcha-answer" placeholder="Your answer" class="mt-2 block w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-gray-200 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all">
+                </div>
+                <!-- End Math Captcha Section -->
+
                 <button onclick="fetchResult()" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-4 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transform hover:scale-105">
                     Retrieve Marksheet
                 </button>
@@ -105,13 +113,24 @@
         // --- GLOBAL VARIABLES ---
         let currentStudentResults = [];
         let userIPAddress = "Not available";
+        let captchaAnswer = 0; // To store the correct answer for the math captcha
 
         // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
             initializeTheme();
             fetchUserIP();
+            generateCaptcha(); // Generate captcha on page load
             showDisclaimer();
         });
+
+        // --- CAPTCHA FUNCTIONS ---
+        function generateCaptcha() {
+            const num1 = Math.floor(Math.random() * 10) + 1; // Numbers between 1 and 10
+            const num2 = Math.floor(Math.random() * 10) + 1;
+            captchaAnswer = num1 + num2;
+            document.getElementById('captcha-question').textContent = `What is ${num1} + ${num2} = ?`;
+            document.getElementById('captcha-answer').value = ''; // Clear previous answer
+        }
 
         // --- CORE FUNCTIONS ---
 
@@ -122,14 +141,24 @@
         async function fetchResult() {
             const roll = document.getElementById("roll").value.trim();
             const selectedClass = document.getElementById("class-select").value;
+            const userAnswer = parseInt(document.getElementById('captcha-answer').value.trim(), 10);
 
             if (!selectedClass) {
                 displayMessage('⚠️', 'Input Required', 'Please select a Class.', 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200');
+                generateCaptcha(); // Regenerate captcha
                 return;
             }
 
             if (!roll) {
                 displayMessage('⚠️', 'Input Required', 'Please enter your Roll Number.', 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200');
+                generateCaptcha(); // Regenerate captcha
+                return;
+            }
+
+            // Validate Captcha
+            if (isNaN(userAnswer) || userAnswer !== captchaAnswer) {
+                displayMessage('❌', 'Captcha Error', 'Incorrect captcha answer. Please try again.', 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
+                generateCaptcha(); // Regenerate captcha on incorrect attempt
                 return;
             }
 
@@ -174,6 +203,8 @@
             } catch (error) {
                 console.error("Fetch Result Error:", error);
                 displayMessage('❗', 'Data Fetch Error', `An error occurred while fetching data: ${error.message}. This can happen due to a network issue or if the backend script is not deployed correctly. Please check your internet connection and ensure the Google Apps Script has been re-deployed with the latest code.`, 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
+            } finally {
+                generateCaptcha(); // Always regenerate captcha after an attempt
             }
         }
 
@@ -266,7 +297,7 @@
                         <p class="text-2xl font-bold text-yellow-300">${percentage}%</p>
                     </div>
                     <div>
-                        <p class="text-sm text-gray-400 font-semibold">OVERALL RESULT</p>
+                        <p class="text-sm font-semibold">OVERALL RESULT</p>
                         <p class="text-2xl font-bold ${overallResultColor}">${overallResultText}</p>
                     </div>
                 </div>
@@ -567,6 +598,7 @@
             document.getElementById("class-select").value = "";
             showDisclaimer();
             currentStudentResults = [];
+            generateCaptcha(); // Regenerate captcha on clear
         }
 
     </script>
