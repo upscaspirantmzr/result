@@ -17,13 +17,13 @@
     <script type="module">
         // Import the functions you need from the Firebase SDKs
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, addDoc, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Firebase Configuration (provided by the environment)
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        // __initial_auth_token is not used for explicit login flow
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
@@ -36,36 +36,21 @@
         window.firebaseDb = db;
         window.currentUserId = null; // Will store the authenticated user's UID
 
-        // Authenticate user on page load
-        async function authenticateUser() {
-            try {
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                    console.log("Signed in with custom token.");
-                } else {
-                    await signInAnonymously(auth);
-                    console.log("Signed in anonymously.");
-                }
-            } catch (error) {
-                console.error("Firebase authentication error:", error);
-                displayMessage('❗', 'Authentication Error', `Failed to authenticate with Firebase: ${error.message}`, 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
-            }
-        }
-
         // Listen for authentication state changes
         onAuthStateChanged(auth, (user) => {
             if (user) {
+                // User is signed in (e.g., a teacher has successfully logged in)
                 window.currentUserId = user.uid;
-                document.getElementById('login-section').classList.add('hidden');
-                document.getElementById('admin-dashboard').classList.remove('hidden');
-                document.getElementById('user-email-display').textContent = user.email || 'Anonymous User';
+                document.getElementById('login-section').classList.add('hidden'); // Hide login form
+                document.getElementById('admin-dashboard').classList.remove('hidden'); // Show dashboard
+                document.getElementById('user-email-display').textContent = user.email || 'Teacher'; // Display user email
+                clearMessages(); // Clear any login messages
                 console.log("User is signed in:", user.uid);
-                // Fetch and display existing marks if needed (optional)
-                // fetchAndDisplayMarks();
             } else {
+                // No user is signed in (initial state or after logout)
                 window.currentUserId = null;
-                document.getElementById('login-section').classList.remove('hidden');
-                document.getElementById('admin-dashboard').classList.add('hidden');
+                document.getElementById('login-section').classList.remove('hidden'); // Show login form
+                document.getElementById('admin-dashboard').classList.add('hidden'); // Hide dashboard
                 console.log("No user is signed in.");
             }
         });
@@ -77,16 +62,23 @@
             displayLoader("Authenticating...");
             try {
                 await signInWithEmailAndPassword(auth, email, password);
-                displayMessage('✅', 'Success', 'Logged in successfully!', 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200');
+                // The onAuthStateChanged listener will handle UI update on success
             } catch (error) {
                 console.error("Login error:", error);
-                displayMessage('❌', 'Login Failed', `Error: ${error.message}`, 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
+                let errorMessage = "Login failed. Please check your email and password.";
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    errorMessage = "Invalid email or password.";
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = "Please enter a valid email address.";
+                }
+                displayMessage('❌', 'Login Failed', errorMessage, 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
             }
         };
 
         window.handleLogout = async () => {
             try {
                 await signOut(auth);
+                // The onAuthStateChanged listener will handle UI update on logout
                 displayMessage('👋', 'Logged Out', 'You have been logged out.', 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200');
             } catch (error) {
                 console.error("Logout error:", error);
@@ -94,33 +86,30 @@
             }
         };
 
-        // Function to save marks to Firestore (optional, for internal tracking)
+        // Function to save marks to Firestore (optional, for internal tracking/auditing)
         // This is separate from updating Google Sheet
         window.saveMarksToFirestore = async (marksData) => {
             if (!window.currentUserId) {
-                displayMessage('❗', 'Auth Required', 'Please log in to save marks.', 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
-                return;
+                console.warn("Attempted to save marks to Firestore without authenticated user.");
+                return; // Do not display message here, as it's an internal audit step
             }
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
             const userId = window.currentUserId; // Use the authenticated user's UID
 
             try {
-                // Store in a private collection for the user
+                // Store in a private collection for the user's entries
                 const marksCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/teacher_marks_entries`);
                 await addDoc(marksCollectionRef, {
                     ...marksData,
                     timestamp: new Date().toISOString(),
                     enteredBy: userId // Record who entered the marks
                 });
-                console.log("Marks saved to Firestore:", marksData);
+                console.log("Marks saved to Firestore for auditing:", marksData);
             } catch (error) {
                 console.error("Error saving marks to Firestore:", error);
-                displayMessage('❗', 'Firestore Error', `Failed to save marks to internal database: ${error.message}`, 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
+                // Do not display message to user for internal audit failure
             }
         };
-
-        // Call authentication on DOMContentLoaded
-        document.addEventListener('DOMContentLoaded', authenticateUser);
 
     </script>
 
@@ -155,7 +144,7 @@
 
     <!-- Theme Toggle Button -->
     <button id="theme-toggle" type="button" class="fixed top-4 right-4 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 z-50">
-        <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8 0 1010.586 10.586z"></path></svg>
+        <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
         <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
     </button>
 
@@ -170,7 +159,8 @@
             </div>
 
             <!-- Login Section -->
-            <div id="login-section" class="p-6 md:p-8 space-y-6 hidden">
+            <!-- Removed 'hidden' class from login-section so it's visible by default -->
+            <div id="login-section" class="p-6 md:p-8 space-y-6">
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white text-center">Admin Login</h2>
                 <div>
                     <label for="login-email" class="text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
@@ -393,4 +383,3 @@
     </script>
 </body>
 </html>
-
