@@ -21,24 +21,14 @@
         // Added 'orderBy' and 'limit' for fetching recent submissions
         import { getFirestore, doc, addDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase Configuration: REPLACE THE ENTIRE OBJECT BELOW WITH YOUR ACTUAL FIREBASE CONFIG FROM YOUR FIREBASE PROJECT SETTINGS
-        // Example:
-        // const firebaseConfig = {
-        //   apiKey: "AIzaSyB...",
-        //   authDomain: "your-project-id.firebaseapp.com",
-        //   projectId: "your-project-id",
-        //   storageBucket: "your-project-id.appspot.com",
-        //   messagingSenderId: "...",
-        //   appId: "1:...",
-        //   measurementId: "G-..." // May or may not be present
-        // };
+        // Firebase Configuration: Your provided config
        const firebaseConfig = {
              apiKey: "AIzaSyB6NoqpG31TlSY5uLIvr3SMTwgRfm3XCjg",
-    authDomain: "adminmarksmzr.firebaseapp.com",
-    projectId: "adminmarksmzr",
-    storageBucket: "adminmarksmzr.firebasestorage.app",
-    messagingSenderId: "728791827973",
-    appId: "1:728791827973:web:7984797f78b8285fd17e6c"
+            authDomain: "adminmarksmzr.firebaseapp.com",
+            projectId: "adminmarksmzr",
+            storageBucket: "adminmarksmzr.firebasestorage.app",
+            messagingSenderId: "728791827973",
+            appId: "1:728791827973:web:7984797f78b8285fd17e6c"
         };
         
         // Initialize Firebase
@@ -55,19 +45,19 @@
         // Listen for authentication state changes
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // User is signed in (e.g., a teacher has successfully logged in)
+                // User is signed in
                 window.currentUserId = user.uid;
-                document.getElementById('login-section').classList.add('hidden'); // Hide login form
-                document.getElementById('admin-dashboard').classList.remove('hidden'); // Show dashboard
-                document.getElementById('user-email-display').textContent = user.email || 'Teacher'; // Display user email
-                clearMessages(); // Clear any login messages
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('admin-dashboard').classList.remove('hidden');
+                document.getElementById('user-email-display').textContent = user.email || 'Teacher';
+                clearMessages();
                 console.log("User is signed in:", user.uid);
-                fetchRecentSubmissions(); // Fetch recent submissions for the logged-in user
+                fetchRecentSubmissions();
             } else {
-                // No user is signed in (initial state or after logout)
+                // No user is signed in
                 window.currentUserId = null;
-                document.getElementById('login-section').classList.remove('hidden'); // Show login form
-                document.getElementById('admin-dashboard').classList.add('hidden'); // Hide dashboard
+                document.getElementById('login-section').classList.remove('hidden');
+                document.getElementById('admin-dashboard').classList.add('hidden');
                 console.log("No user is signed in.");
             }
         });
@@ -79,11 +69,11 @@
             displayLoader("Authenticating...");
             try {
                 await signInWithEmailAndPassword(auth, email, password);
-                // The onAuthStateChanged listener will handle UI update on success
+                // onAuthStateChanged will handle UI update
             } catch (error) {
                 console.error("Login error:", error);
                 let errorMessage = "Login failed. Please check your email and password.";
-                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
                     errorMessage = "Invalid email or password.";
                 } else if (error.code === 'auth/invalid-email') {
                     errorMessage = "Please enter a valid email address.";
@@ -95,7 +85,7 @@
         window.handleLogout = async () => {
             try {
                 await signOut(auth);
-                // The onAuthStateChanged listener will handle UI update on logout
+                // onAuthStateChanged will handle UI update
                 displayMessage('👋', 'Logged Out', 'You have been logged out.', 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200');
             } catch (error) {
                 console.error("Logout error:", error);
@@ -103,13 +93,13 @@
             }
         };
 
-        // Function to save marks to Firestore (for internal tracking/auditing)
+        // Function to save marks to Firestore
         window.saveMarksToFirestore = async (marksData) => {
             if (!window.currentUserId) {
                 console.warn("Attempted to save marks to Firestore without authenticated user.");
-                return; // Do not display message here, as it's an internal audit step
+                return;
             }
-            const appIdForFirestore = firebaseConfig.projectId || 'default-app-id'; // Use projectId for app ID when hosting on GitHub
+            const appIdForFirestore = firebaseConfig.projectId || 'default-app-id';
             const userId = window.currentUserId;
 
             try {
@@ -128,17 +118,14 @@
         // Function to fetch and display recent submissions from Firestore
         window.fetchRecentSubmissions = async () => {
             const recentEntriesList = document.getElementById('recent-entries-list');
-            if (!recentEntriesList || !window.currentUserId) {
-                return;
-            }
+            if (!recentEntriesList || !window.currentUserId) return;
 
             recentEntriesList.innerHTML = `<p class="text-gray-500 dark:text-gray-400">Loading recent entries...</p>`;
-            const appIdForFirestore = firebaseConfig.projectId || 'default-app-id'; // Use projectId for app ID when hosting on GitHub
+            const appIdForFirestore = firebaseConfig.projectId || 'default-app-id';
             const userId = window.currentUserId;
 
             try {
                 const marksCollectionRef = collection(db, `artifacts/${appIdForFirestore}/users/${userId}/teacher_marks_entries`);
-                // Order by timestamp descending and limit to 5 recent entries
                 const q = query(marksCollectionRef, orderBy("timestamp", "desc"), limit(5));
                 const querySnapshot = await getDocs(q);
 
@@ -176,11 +163,7 @@
                     `;
                 });
 
-                tableHtml += `
-                            </tbody>
-                        </table>
-                    </div>
-                `;
+                tableHtml += `</tbody></table></div>`;
                 recentEntriesList.innerHTML = tableHtml;
 
             } catch (error) {
@@ -188,7 +171,6 @@
                 recentEntriesList.innerHTML = `<p class="text-red-500 dark:text-red-400">Error loading recent entries: ${error.message}</p>`;
             }
         };
-
     </script>
 
     <style>
@@ -314,7 +296,7 @@
                                 <li>Enter the **Student Name** for reference.</li>
                                 <li>Enter the Subject name as it appears in your Google Sheet.</li>
                                 <li>Theory Marks are out of 100.</li>
-                                <li>Practical Marks are optional (e.g., out of 50 or 100, depending on your sheet structure).</li>
+                                <li>Practical Marks are optional.</li>
                                 <li>Click "Submit Marks" to send the data to the Google Sheet via Apps Script.</li>
                             </ul>
                             <p class="text-purple-600 dark:text-purple-300 font-semibold">Note: This action will update your Google Sheet directly. Please verify your Apps Script deployment.</p>
@@ -335,7 +317,7 @@
 
     <script>
         // --- CONFIGURATION ---
-        // REPLACE THIS WITH YOUR DEPLOYED GOOGLE APPS SCRIPT WEB APP URL FOR UPDATING MARKS
+        // REPLACE THIS WITH YOUR DEPLOYED GOOGLE APPS SCRIPT WEB APP URL
         const appsScriptUpdateUrl = "https://script.google.com/macros/s/AKfycbzgUtob_zgGYzlZbr13uFQiXvLKoqHeKI4hpD-lkkoZDXCV7t-MZrBFRzBIQkQF9-Aj/exec";
 
         // --- UI HELPER FUNCTIONS ---
@@ -349,7 +331,7 @@
         function displayMessage(icon, title, message, colorClasses) {
             const container = document.getElementById('dashboard-message-container') || document.getElementById('login-message-container');
             if (container) {
-                container.innerHTML = `<div class="rounded-lg p-3 ${colorClasses}"><div class="flex items-center"><div class="flex-shrink-0 text-xl">${icon}</div><div class="ml-3"><h3 class="text-sm font-bold">${title}</h3><div class="text-sm mt-0.5">${message}</div></div></div></div>`;
+                container.innerHTML = `<div class="rounded-lg p-3 ${colorClasses}"><div class="flex items-start"><div class="flex-shrink-0 text-xl">${icon}</div><div class="ml-3"><h3 class="text-sm font-bold">${title}</h3><div class="text-sm mt-0.5">${message}</div></div></div></div>`;
             }
         }
 
@@ -386,10 +368,10 @@
 
         // --- MARK SUBMISSION LOGIC ---
         async function submitMarks() {
-            clearMessages(); // Clear previous messages
+            clearMessages();
             const selectedClass = document.getElementById('admin-class-select').value.trim();
             const rollNumber = document.getElementById('admin-roll').value.trim();
-            const studentName = document.getElementById('admin-student-name').value.trim(); // Get student name
+            const studentName = document.getElementById('admin-student-name').value.trim();
             const subject = document.getElementById('admin-subject').value.trim();
             const theoryMarks = document.getElementById('admin-theory-marks').value.trim();
             const practicalMarks = document.getElementById('admin-practical-marks').value.trim();
@@ -399,7 +381,6 @@
                 return;
             }
 
-            // Basic validation for marks
             const parsedTheoryMarks = parseInt(theoryMarks, 10);
             if (isNaN(parsedTheoryMarks) || parsedTheoryMarks < 0 || parsedTheoryMarks > 100) {
                 displayMessage('⚠️', 'Invalid Input', 'Theory Marks must be a number between 0 and 100.', 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200');
@@ -409,7 +390,6 @@
             let parsedPracticalMarks = null;
             if (practicalMarks !== '') {
                 parsedPracticalMarks = parseInt(practicalMarks, 10);
-                // Assuming practical marks are out of 50, adjust as per your sheet
                 if (isNaN(parsedPracticalMarks) || parsedPracticalMarks < 0 || parsedPracticalMarks > 50) {
                     displayMessage('⚠️', 'Invalid Input', 'Practical Marks must be a number between 0 and 50 (or your max practical score).', 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200');
                     return;
@@ -417,14 +397,14 @@
             }
 
             const marksData = {
-                action: "updateMarks", // Action for Apps Script to identify
+                action: "updateMarks",
                 class: selectedClass,
                 roll: rollNumber,
-                studentName: studentName, // Added student name
+                studentName: studentName,
                 subject: subject,
                 theoryMarks: parsedTheoryMarks,
                 practicalMarks: parsedPracticalMarks,
-                enteredBy: window.currentUserId // Send the user ID for logging/auditing in Apps Script
+                enteredBy: window.currentUserId
             };
 
             displayLoader("Submitting marks...");
@@ -433,7 +413,8 @@
                 // Send data to Google Apps Script
                 const response = await fetch(appsScriptUpdateUrl, {
                     method: 'POST',
-                    mode: 'cors', // Crucial for cross-origin requests
+                    // MODIFIED: Reverted to 'cors' mode to properly handle responses and errors.
+                    mode: 'cors', 
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -441,29 +422,34 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status} - ${response.statusText}`);
+                    throw new Error(`HTTP error! Status: ${response.status}`);
                 }
 
+                // MODIFIED: We can now read the JSON response from the script.
                 const result = await response.json();
 
                 if (result.status === "success") {
-                    displayMessage('✅', 'Success', 'Marks updated successfully in Google Sheet!', 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200');
-                    // Optionally save to Firestore for internal tracking/auditing
+                    displayMessage('✅', 'Success!', 'Marks updated successfully in Google Sheet!', 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200');
+                    
                     window.saveMarksToFirestore(marksData);
-                    fetchRecentSubmissions(); // Refresh recent submissions
-                    // Clear form fields after successful submission
+                    fetchRecentSubmissions();
+                    // Clear form fields
                     document.getElementById('admin-class-select').value = '';
                     document.getElementById('admin-roll').value = '';
-                    document.getElementById('admin-student-name').value = ''; // Clear student name
+                    document.getElementById('admin-student-name').value = '';
                     document.getElementById('admin-subject').value = '';
                     document.getElementById('admin-theory-marks').value = '';
                     document.getElementById('admin-practical-marks').value = '';
                 } else {
-                    displayMessage('❌', 'Submission Failed', `Error: ${result.message || 'Unknown error from Apps Script.'}`, 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
+                    // Display the actual error message from the Apps Script
+                    displayMessage('❌', 'Submission Failed', `Error from script: ${result.message || 'Unknown error.'}`, 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
                 }
+
             } catch (error) {
+                // MODIFIED: This catch block will now provide more useful debugging info for CORS or network errors.
                 console.error("Error submitting marks:", error);
-                displayMessage('❗', 'Network/Server Error', `Could not submit marks: ${error.message}. Please check your internet connection and Apps Script URL.`, 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
+                let errorMessage = `Could not submit marks. This is often a CORS or network issue. Please check the browser console (F12) for more details. <br><br><strong>Important:</strong> Ensure your Google Apps Script is deployed correctly with the code provided.`;
+                displayMessage('❗', 'Network or Script Error', errorMessage, 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
             }
         }
     </script>
