@@ -18,7 +18,8 @@
         // Import the functions you need from the Firebase SDKs
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, addDoc, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // Added 'orderBy' and 'limit' for fetching recent submissions
+        import { getFirestore, doc, addDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Firebase Configuration: REPLACE THE ENTIRE OBJECT BELOW WITH YOUR ACTUAL FIREBASE CONFIG FROM YOUR FIREBASE PROJECT SETTINGS
         // Example:
@@ -29,16 +30,15 @@
         //   storageBucket: "your-project-id.appspot.com",
         //   messagingSenderId: "...",
         //   appId: "1:...",
-        //   measurementId: "G-..."
+        //   measurementId: "G-..." // May or may not be present
         // };
-        const firebaseConfig = {
+       const firebaseConfig = {
              apiKey: "AIzaSyB6NoqpG31TlSY5uLIvr3SMTwgRfm3XCjg",
     authDomain: "adminmarksmzr.firebaseapp.com",
     projectId: "adminmarksmzr",
     storageBucket: "adminmarksmzr.firebasestorage.app",
     messagingSenderId: "728791827973",
     appId: "1:728791827973:web:7984797f78b8285fd17e6c"
-           
         };
         
         // Initialize Firebase
@@ -62,6 +62,7 @@
                 document.getElementById('user-email-display').textContent = user.email || 'Teacher'; // Display user email
                 clearMessages(); // Clear any login messages
                 console.log("User is signed in:", user.uid);
+                fetchRecentSubmissions(); // Fetch recent submissions for the logged-in user
             } else {
                 // No user is signed in (initial state or after logout)
                 window.currentUserId = null;
@@ -102,29 +103,89 @@
             }
         };
 
-        // Function to save marks to Firestore (optional, for internal tracking/auditing)
-        // This is separate from updating Google Sheet
+        // Function to save marks to Firestore (for internal tracking/auditing)
         window.saveMarksToFirestore = async (marksData) => {
             if (!window.currentUserId) {
                 console.warn("Attempted to save marks to Firestore without authenticated user.");
                 return; // Do not display message here, as it's an internal audit step
             }
-            // For GitHub hosting, __app_id is not available, so we use projectId from firebaseConfig
-            const appIdForFirestore = firebaseConfig.projectId || 'default-app-id';
-            const userId = window.currentUserId; // Use the authenticated user's UID
+            const appIdForFirestore = firebaseConfig.projectId || 'default-app-id'; // Use projectId for app ID when hosting on GitHub
+            const userId = window.currentUserId;
 
             try {
-                // Store in a private collection for the user's entries
                 const marksCollectionRef = collection(db, `artifacts/${appIdForFirestore}/users/${userId}/teacher_marks_entries`);
                 await addDoc(marksCollectionRef, {
                     ...marksData,
                     timestamp: new Date().toISOString(),
-                    enteredBy: userId // Record who entered the marks
+                    enteredBy: userId
                 });
                 console.log("Marks saved to Firestore for auditing:", marksData);
             } catch (error) {
                 console.error("Error saving marks to Firestore:", error);
-                // Do not display message to user for internal audit failure
+            }
+        };
+
+        // Function to fetch and display recent submissions from Firestore
+        window.fetchRecentSubmissions = async () => {
+            const recentEntriesList = document.getElementById('recent-entries-list');
+            if (!recentEntriesList || !window.currentUserId) {
+                return;
+            }
+
+            recentEntriesList.innerHTML = `<p class="text-gray-500 dark:text-gray-400">Loading recent entries...</p>`;
+            const appIdForFirestore = firebaseConfig.projectId || 'default-app-id'; // Use projectId for app ID when hosting on GitHub
+            const userId = window.currentUserId;
+
+            try {
+                const marksCollectionRef = collection(db, `artifacts/${appIdForFirestore}/users/${userId}/teacher_marks_entries`);
+                // Order by timestamp descending and limit to 5 recent entries
+                const q = query(marksCollectionRef, orderBy("timestamp", "desc"), limit(5));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    recentEntriesList.innerHTML = `<p class="text-gray-500 dark:text-gray-400">No recent entries found.</p>`;
+                    return;
+                }
+
+                let tableHtml = `
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-100 dark:bg-gray-700">
+                                <tr>
+                                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Student</th>
+                                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Roll</th>
+                                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Subject</th>
+                                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Marks</th>
+                                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                `;
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const date = new Date(data.timestamp).toLocaleDateString();
+                    tableHtml += `
+                        <tr>
+                            <td class="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">${data.studentName || 'N/A'}</td>
+                            <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${data.roll}</td>
+                            <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${data.subject}</td>
+                            <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${data.theoryMarks}${data.practicalMarks ? `/${data.practicalMarks}` : ''}</td>
+                            <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">${date}</td>
+                        </tr>
+                    `;
+                });
+
+                tableHtml += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                recentEntriesList.innerHTML = tableHtml;
+
+            } catch (error) {
+                console.error("Error fetching recent submissions:", error);
+                recentEntriesList.innerHTML = `<p class="text-red-500 dark:text-red-400">Error loading recent entries: ${error.message}</p>`;
             }
         };
 
@@ -222,6 +283,10 @@
                                 <input type="text" id="admin-roll" placeholder="e.g., 21CS001" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-purple-500 focus:border-purple-500">
                             </div>
                             <div>
+                                <label for="admin-student-name" class="text-sm font-medium text-gray-700 dark:text-gray-300">Student Name</label>
+                                <input type="text" id="admin-student-name" placeholder="e.g., John Doe" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-purple-500 focus:border-purple-500">
+                            </div>
+                            <div>
                                 <label for="admin-subject" class="text-sm font-medium text-gray-700 dark:text-gray-300">Subject</label>
                                 <input type="text" id="admin-subject" placeholder="e.g., Mathematics" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-purple-500 focus:border-purple-500">
                             </div>
@@ -246,6 +311,7 @@
                             <p>Use this dashboard to securely enter student marks. Please ensure accuracy before submission.</p>
                             <ul class="list-disc list-inside space-y-1">
                                 <li>Select the correct Class and enter the exact Roll Number.</li>
+                                <li>Enter the **Student Name** for reference.</li>
                                 <li>Enter the Subject name as it appears in your Google Sheet.</li>
                                 <li>Theory Marks are out of 100.</li>
                                 <li>Practical Marks are optional (e.g., out of 50 or 100, depending on your sheet structure).</li>
@@ -253,11 +319,11 @@
                             </ul>
                             <p class="text-purple-600 dark:text-purple-300 font-semibold">Note: This action will update your Google Sheet directly. Please verify your Apps Script deployment.</p>
                         </div>
-                        <!-- You can add a section here to display recent entries from Firestore if desired -->
-                        <!-- <h3 class="text-xl font-bold text-gray-900 dark:text-white mt-6 mb-4">Recent Entries</h3>
+
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mt-6 mb-4">Your Recent Submissions</h3>
                         <div id="recent-entries-list" class="space-y-2">
-                            <p class="text-gray-500 dark:text-gray-400">No recent entries yet.</p>
-                        </div> -->
+                            <p class="text-gray-500 dark:text-gray-400">Loading recent entries...</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -323,12 +389,13 @@
             clearMessages(); // Clear previous messages
             const selectedClass = document.getElementById('admin-class-select').value.trim();
             const rollNumber = document.getElementById('admin-roll').value.trim();
+            const studentName = document.getElementById('admin-student-name').value.trim(); // Get student name
             const subject = document.getElementById('admin-subject').value.trim();
             const theoryMarks = document.getElementById('admin-theory-marks').value.trim();
             const practicalMarks = document.getElementById('admin-practical-marks').value.trim();
 
-            if (!selectedClass || !rollNumber || !subject || theoryMarks === '') {
-                displayMessage('⚠️', 'Input Required', 'Please fill in Class, Roll Number, Subject, and Theory Marks.', 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200');
+            if (!selectedClass || !rollNumber || !studentName || !subject || theoryMarks === '') {
+                displayMessage('⚠️', 'Input Required', 'Please fill in Class, Roll Number, Student Name, Subject, and Theory Marks.', 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200');
                 return;
             }
 
@@ -353,6 +420,7 @@
                 action: "updateMarks", // Action for Apps Script to identify
                 class: selectedClass,
                 roll: rollNumber,
+                studentName: studentName, // Added student name
                 subject: subject,
                 theoryMarks: parsedTheoryMarks,
                 practicalMarks: parsedPracticalMarks,
@@ -382,10 +450,11 @@
                     displayMessage('✅', 'Success', 'Marks updated successfully in Google Sheet!', 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200');
                     // Optionally save to Firestore for internal tracking/auditing
                     window.saveMarksToFirestore(marksData);
+                    fetchRecentSubmissions(); // Refresh recent submissions
                     // Clear form fields after successful submission
                     document.getElementById('admin-class-select').value = '';
-                    
-                    ('admin-roll').value = '';
+                    document.getElementById('admin-roll').value = '';
+                    document.getElementById('admin-student-name').value = ''; // Clear student name
                     document.getElementById('admin-subject').value = '';
                     document.getElementById('admin-theory-marks').value = '';
                     document.getElementById('admin-practical-marks').value = '';
