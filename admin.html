@@ -1,77 +1,396 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Panel</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body {
-      background-color: #f8f9fa;
-    }
-    .container {
-      margin-top: 50px;
-    }
-    .card {
-      margin-bottom: 20px;
-    }
-    .status-btn {
-      width: 100px;
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sparrows Academy Admin</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        // Import the functions you need from the Firebase SDKs
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Configuration (provided by the environment)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Global variables for Firebase instances and user ID
+        window.firebaseApp = app;
+        window.firebaseAuth = auth;
+        window.firebaseDb = db;
+        window.currentUserId = null; // Will store the authenticated user's UID
+
+        // Authenticate user on page load
+        async function authenticateUser() {
+            try {
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                    console.log("Signed in with custom token.");
+                } else {
+                    await signInAnonymously(auth);
+                    console.log("Signed in anonymously.");
+                }
+            } catch (error) {
+                console.error("Firebase authentication error:", error);
+                displayMessage('❗', 'Authentication Error', `Failed to authenticate with Firebase: ${error.message}`, 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
+            }
+        }
+
+        // Listen for authentication state changes
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                window.currentUserId = user.uid;
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('admin-dashboard').classList.remove('hidden');
+                document.getElementById('user-email-display').textContent = user.email || 'Anonymous User';
+                console.log("User is signed in:", user.uid);
+                // Fetch and display existing marks if needed (optional)
+                // fetchAndDisplayMarks();
+            } else {
+                window.currentUserId = null;
+                document.getElementById('login-section').classList.remove('hidden');
+                document.getElementById('admin-dashboard').classList.add('hidden');
+                console.log("No user is signed in.");
+            }
+        });
+
+        // Expose functions to global scope for HTML to call
+        window.handleLogin = async () => {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            displayLoader("Authenticating...");
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                displayMessage('✅', 'Success', 'Logged in successfully!', 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200');
+            } catch (error) {
+                console.error("Login error:", error);
+                displayMessage('❌', 'Login Failed', `Error: ${error.message}`, 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
+            }
+        };
+
+        window.handleLogout = async () => {
+            try {
+                await signOut(auth);
+                displayMessage('👋', 'Logged Out', 'You have been logged out.', 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200');
+            } catch (error) {
+                console.error("Logout error:", error);
+                displayMessage('❗', 'Logout Failed', `Error: ${error.message}`, 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
+            }
+        };
+
+        // Function to save marks to Firestore (optional, for internal tracking)
+        // This is separate from updating Google Sheet
+        window.saveMarksToFirestore = async (marksData) => {
+            if (!window.currentUserId) {
+                displayMessage('❗', 'Auth Required', 'Please log in to save marks.', 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
+                return;
+            }
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            const userId = window.currentUserId; // Use the authenticated user's UID
+
+            try {
+                // Store in a private collection for the user
+                const marksCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/teacher_marks_entries`);
+                await addDoc(marksCollectionRef, {
+                    ...marksData,
+                    timestamp: new Date().toISOString(),
+                    enteredBy: userId // Record who entered the marks
+                });
+                console.log("Marks saved to Firestore:", marksData);
+            } catch (error) {
+                console.error("Error saving marks to Firestore:", error);
+                displayMessage('❗', 'Firestore Error', `Failed to save marks to internal database: ${error.message}`, 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
+            }
+        };
+
+        // Call authentication on DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', authenticateUser);
+
+    </script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light background */
+            background-image: linear-gradient(to top, #dfe9f3 0%, white 100%);
+        }
+        .dark body {
+            background-color: #0f172a; /* Dark background */
+            background-image: linear-gradient(to top, #0f172a 0%, #1e293b 100%);
+        }
+        .transition-all {
+            transition: all 0.3s ease-in-out;
+        }
+        .main-card {
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+        .animated-gradient {
+            background-size: 200% 200%;
+            animation: gradient-animation 10s ease infinite;
+        }
+        @keyframes gradient-animation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+    </style>
 </head>
-<body>
-  <div class="container">
-    <h2 class="text-center mb-4">Admin Panel: Review Applications</h2>
-    <div id="appList" class="row"></div>
-  </div>
+<body class="transition-all">
 
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyD67r7V8lcucf9f-5Cn3nbYxhj9SiRL5TU",
-      authDomain: "studentadmissions-1402c.firebaseapp.com",
-      projectId: "studentadmissions-1402c"
-    };
+    <!-- Theme Toggle Button -->
+    <button id="theme-toggle" type="button" class="fixed top-4 right-4 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 z-50">
+        <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8 0 1010.586 10.586z"></path></svg>
+        <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+    </button>
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    document.addEventListener("DOMContentLoaded", async () => {
-      const appList = document.getElementById("appList");
-      const snapshot = await db.collection("applications").get();
-
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        const statusClass = data.status === "Approved" ? "bg-success" : data.status === "Rejected" ? "bg-danger" : "bg-warning";
-        const statusText = data.status === "Approved" ? "Approved" : data.status === "Rejected" ? "Rejected" : "Pending";
-
-        const card = document.createElement("div");
-        card.classList.add("col-md-4");
-        card.innerHTML = `
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">${data.name}</h5>
-              <p class="card-text"><strong>Email:</strong> ${data.email}</p>
-              <p class="card-text"><strong>Course:</strong> ${data.course}</p>
-              <p class="card-text"><strong>Application ID:</strong> ${doc.id}</p>
-              <p class="card-text"><strong>Status:</strong> <span class="badge ${statusClass}">${statusText}</span></p>
-              <button class="btn btn-outline-success status-btn" onclick="updateStatus('${doc.id}', 'Approved')">Approve</button>
-              <button class="btn btn-outline-danger status-btn" onclick="updateStatus('${doc.id}', 'Rejected')">Reject</button>
+    <div class="w-full max-w-3xl mx-auto min-h-screen flex flex-col justify-center items-center p-4">
+        <div class="w-full bg-white dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl main-card border border-gray-200 dark:border-gray-700/50 overflow-hidden">
+            <div class="p-8 bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-700 dark:to-pink-800 text-white text-center animated-gradient">
+                <div class="flex justify-center items-center gap-4">
+                    <svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z" /></svg>
+                    <h1 class="text-3xl font-extrabold tracking-tight">Admin Dashboard</h1>
+                </div>
+                <p class="text-purple-200 mt-2">Manage Student Marks</p>
             </div>
-          </div>
-        `;
-        appList.appendChild(card);
-      });
-    });
 
-    async function updateStatus(id, status) {
-      await db.collection("applications").doc(id).update({ status });
-      alert(`Application ${id} has been ${status}`);
-      location.reload();
-    }
-  </script>
+            <!-- Login Section -->
+            <div id="login-section" class="p-6 md:p-8 space-y-6 hidden">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white text-center">Admin Login</h2>
+                <div>
+                    <label for="login-email" class="text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+                    <input type="email" id="login-email" placeholder="teacher@sparrows.edu" class="mt-2 block w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all">
+                </div>
+                <div>
+                    <label for="login-password" class="text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
+                    <input type="password" id="login-password" placeholder="••••••••" class="mt-2 block w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all">
+                </div>
+                <button onclick="handleLogin()" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-4 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 dark:focus:ring-offset-gray-800 transform hover:scale-105">
+                    Login
+                </button>
+                <div id="login-message-container"></div>
+            </div>
+
+            <!-- Admin Dashboard Section -->
+            <div id="admin-dashboard" class="p-6 md:p-8 space-y-6 hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Welcome, <span id="user-email-display"></span>!</h2>
+                    <button onclick="handleLogout()" class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-semibold py-2 px-4 rounded-lg transition-all">
+                        Logout
+                    </button>
+                </div>
+
+                <div id="dashboard-message-container"></div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Enter Marks Form -->
+                    <div class="bg-gray-50 dark:bg-gray-700/50 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Enter Student Marks</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="admin-class-select" class="text-sm font-medium text-gray-700 dark:text-gray-300">Class</label>
+                                <select id="admin-class-select" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-purple-500 focus:border-purple-500">
+                                    <option value="">Select Class</option>
+                                    <option value="Class 7">Class 7</option>
+                                    <option value="Class 8">Class 8</option>
+                                    <option value="Class 9">Class 9</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="admin-roll" class="text-sm font-medium text-gray-700 dark:text-gray-300">Roll Number</label>
+                                <input type="text" id="admin-roll" placeholder="e.g., 21CS001" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-purple-500 focus:border-purple-500">
+                            </div>
+                            <div>
+                                <label for="admin-subject" class="text-sm font-medium text-gray-700 dark:text-gray-300">Subject</label>
+                                <input type="text" id="admin-subject" placeholder="e.g., Mathematics" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-purple-500 focus:border-purple-500">
+                            </div>
+                            <div>
+                                <label for="admin-theory-marks" class="text-sm font-medium text-gray-700 dark:text-gray-300">Theory Marks (out of 100)</label>
+                                <input type="number" id="admin-theory-marks" placeholder="e.g., 85" min="0" max="100" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-purple-500 focus:border-purple-500">
+                            </div>
+                            <div>
+                                <label for="admin-practical-marks" class="text-sm font-medium text-gray-700 dark:text-gray-300">Practical Marks (Optional)</label>
+                                <input type="number" id="admin-practical-marks" placeholder="e.g., 45" min="0" max="50" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-purple-500 focus:border-purple-500">
+                            </div>
+                            <button onclick="submitMarks()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 dark:focus:ring-offset-gray-800">
+                                Submit Marks
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Recent Entries / Instructions -->
+                    <div class="bg-gray-50 dark:bg-gray-700/50 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Instructions</h3>
+                        <div class="text-gray-700 dark:text-gray-300 text-sm space-y-3">
+                            <p>Use this dashboard to securely enter student marks. Please ensure accuracy before submission.</p>
+                            <ul class="list-disc list-inside space-y-1">
+                                <li>Select the correct Class and enter the exact Roll Number.</li>
+                                <li>Enter the Subject name as it appears in your Google Sheet.</li>
+                                <li>Theory Marks are out of 100.</li>
+                                <li>Practical Marks are optional (e.g., out of 50 or 100, depending on your sheet structure).</li>
+                                <li>Click "Submit Marks" to send the data to the Google Sheet via Apps Script.</li>
+                            </ul>
+                            <p class="text-purple-600 dark:text-purple-300 font-semibold">Note: This action will update your Google Sheet directly. Please verify your Apps Script deployment.</p>
+                        </div>
+                        <!-- You can add a section here to display recent entries from Firestore if desired -->
+                        <!-- <h3 class="text-xl font-bold text-gray-900 dark:text-white mt-6 mb-4">Recent Entries</h3>
+                        <div id="recent-entries-list" class="space-y-2">
+                            <p class="text-gray-500 dark:text-gray-400">No recent entries yet.</p>
+                        </div> -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <footer class="text-center mt-8 text-sm text-gray-500 dark:text-gray-400">
+            <p>&copy; Developed & Maintained by E-Cell, Sparrows Academy.</p>
+        </footer>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        // REPLACE THIS WITH YOUR DEPLOYED GOOGLE APPS SCRIPT WEB APP URL FOR UPDATING MARKS
+        const appsScriptUpdateUrl = "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
+
+        // --- UI HELPER FUNCTIONS ---
+        function displayLoader(message = "Loading...") {
+            const container = document.getElementById('dashboard-message-container') || document.getElementById('login-message-container');
+            if (container) {
+                container.innerHTML = `<div class="flex flex-col items-center justify-center text-center p-4"><svg class="animate-spin h-6 w-6 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><p class="mt-2 text-sm font-semibold text-gray-700 dark:text-gray-300">${message}</p></div>`;
+            }
+        }
+        
+        function displayMessage(icon, title, message, colorClasses) {
+            const container = document.getElementById('dashboard-message-container') || document.getElementById('login-message-container');
+            if (container) {
+                container.innerHTML = `<div class="rounded-lg p-3 ${colorClasses}"><div class="flex items-center"><div class="flex-shrink-0 text-xl">${icon}</div><div class="ml-3"><h3 class="text-sm font-bold">${title}</h3><div class="text-sm mt-0.5">${message}</div></div></div></div>`;
+            }
+        }
+
+        function clearMessages() {
+            const container = document.getElementById('dashboard-message-container') || document.getElementById('login-message-container');
+            if (container) {
+                container.innerHTML = '';
+            }
+        }
+
+        // --- THEME TOGGLE ---
+        function initializeTheme() {
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            if(!themeToggleBtn) return;
+            const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+            const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+
+            if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                themeToggleLightIcon.classList.remove('hidden');
+            } else {
+                document.documentElement.classList.remove('dark');
+                themeToggleDarkIcon.classList.remove('hidden');
+            }
+
+            themeToggleBtn.addEventListener('click', () => {
+                themeToggleDarkIcon.classList.toggle('hidden');
+                themeToggleLightIcon.classList.toggle('hidden');
+                document.documentElement.classList.toggle('dark');
+                localStorage.setItem('color-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+            });
+        }
+        document.addEventListener('DOMContentLoaded', initializeTheme);
+
+        // --- MARK SUBMISSION LOGIC ---
+        async function submitMarks() {
+            clearMessages(); // Clear previous messages
+            const selectedClass = document.getElementById('admin-class-select').value.trim();
+            const rollNumber = document.getElementById('admin-roll').value.trim();
+            const subject = document.getElementById('admin-subject').value.trim();
+            const theoryMarks = document.getElementById('admin-theory-marks').value.trim();
+            const practicalMarks = document.getElementById('admin-practical-marks').value.trim();
+
+            if (!selectedClass || !rollNumber || !subject || theoryMarks === '') {
+                displayMessage('⚠️', 'Input Required', 'Please fill in Class, Roll Number, Subject, and Theory Marks.', 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200');
+                return;
+            }
+
+            // Basic validation for marks
+            const parsedTheoryMarks = parseInt(theoryMarks, 10);
+            if (isNaN(parsedTheoryMarks) || parsedTheoryMarks < 0 || parsedTheoryMarks > 100) {
+                displayMessage('⚠️', 'Invalid Input', 'Theory Marks must be a number between 0 and 100.', 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200');
+                return;
+            }
+
+            let parsedPracticalMarks = null;
+            if (practicalMarks !== '') {
+                parsedPracticalMarks = parseInt(practicalMarks, 10);
+                // Assuming practical marks are out of 50, adjust as per your sheet
+                if (isNaN(parsedPracticalMarks) || parsedPracticalMarks < 0 || parsedPracticalMarks > 50) {
+                    displayMessage('⚠️', 'Invalid Input', 'Practical Marks must be a number between 0 and 50 (or your max practical score).', 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200');
+                    return;
+                }
+            }
+
+            const marksData = {
+                action: "updateMarks", // Action for Apps Script to identify
+                class: selectedClass,
+                roll: rollNumber,
+                subject: subject,
+                theoryMarks: parsedTheoryMarks,
+                practicalMarks: parsedPracticalMarks,
+                enteredBy: window.currentUserId // Send the user ID for logging/auditing in Apps Script
+            };
+
+            displayLoader("Submitting marks...");
+
+            try {
+                // Send data to Google Apps Script
+                const response = await fetch(appsScriptUpdateUrl, {
+                    method: 'POST',
+                    mode: 'cors', // Crucial for cross-origin requests
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(marksData),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status} - ${response.statusText}`);
+                }
+
+                const result = await response.json();
+
+                if (result.status === "success") {
+                    displayMessage('✅', 'Success', 'Marks updated successfully in Google Sheet!', 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200');
+                    // Optionally save to Firestore for internal tracking/auditing
+                    window.saveMarksToFirestore(marksData);
+                    // Clear form fields after successful submission
+                    document.getElementById('admin-class-select').value = '';
+                    document.getElementById('admin-roll').value = '';
+                    document.getElementById('admin-subject').value = '';
+                    document.getElementById('admin-theory-marks').value = '';
+                    document.getElementById('admin-practical-marks').value = '';
+                } else {
+                    displayMessage('❌', 'Submission Failed', `Error: ${result.message || 'Unknown error from Apps Script.'}`, 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
+                }
+            } catch (error) {
+                console.error("Error submitting marks:", error);
+                displayMessage('❗', 'Network/Server Error', `Could not submit marks: ${error.message}. Please check your internet connection and Apps Script URL.`, 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200');
+            }
+        }
+    </script>
 </body>
 </html>
+
