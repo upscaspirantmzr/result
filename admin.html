@@ -20,11 +20,27 @@
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, addDoc, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase Configuration (provided by the environment)
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        // __initial_auth_token is not used for explicit login flow
-
+        // Firebase Configuration: REPLACE THE ENTIRE OBJECT BELOW WITH YOUR ACTUAL FIREBASE CONFIG FROM YOUR FIREBASE PROJECT SETTINGS
+        // Example:
+        // const firebaseConfig = {
+        //   apiKey: "AIzaSyB...",
+        //   authDomain: "your-project-id.firebaseapp.com",
+        //   projectId: "your-project-id",
+        //   storageBucket: "your-project-id.appspot.com",
+        //   messagingSenderId: "...",
+        //   appId: "1:...",
+        //   measurementId: "G-..."
+        // };
+        const firebaseConfig = {
+             apiKey: "AIzaSyB6NoqpG31TlSY5uLIvr3SMTwgRfm3XCjg",
+    authDomain: "adminmarksmzr.firebaseapp.com",
+    projectId: "adminmarksmzr",
+    storageBucket: "adminmarksmzr.firebasestorage.app",
+    messagingSenderId: "728791827973",
+    appId: "1:728791827973:web:7984797f78b8285fd17e6c"
+           
+        };
+        
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -93,12 +109,13 @@
                 console.warn("Attempted to save marks to Firestore without authenticated user.");
                 return; // Do not display message here, as it's an internal audit step
             }
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            // For GitHub hosting, __app_id is not available, so we use projectId from firebaseConfig
+            const appIdForFirestore = firebaseConfig.projectId || 'default-app-id';
             const userId = window.currentUserId; // Use the authenticated user's UID
 
             try {
                 // Store in a private collection for the user's entries
-                const marksCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/teacher_marks_entries`);
+                const marksCollectionRef = collection(db, `artifacts/${appIdForFirestore}/users/${userId}/teacher_marks_entries`);
                 await addDoc(marksCollectionRef, {
                     ...marksData,
                     timestamp: new Date().toISOString(),
@@ -159,7 +176,6 @@
             </div>
 
             <!-- Login Section -->
-            <!-- Removed 'hidden' class from login-section so it's visible by default -->
             <div id="login-section" class="p-6 md:p-8 space-y-6">
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white text-center">Admin Login</h2>
                 <div>
@@ -368,7 +384,8 @@
                     window.saveMarksToFirestore(marksData);
                     // Clear form fields after successful submission
                     document.getElementById('admin-class-select').value = '';
-                    document.getElementById('admin-roll').value = '';
+                    
+                    ('admin-roll').value = '';
                     document.getElementById('admin-subject').value = '';
                     document.getElementById('admin-theory-marks').value = '';
                     document.getElementById('admin-practical-marks').value = '';
